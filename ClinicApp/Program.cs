@@ -1,5 +1,22 @@
 ﻿using ClinicApp;
 
+Console.WriteLine("\n=== Записи (Task 5: Appointment Demo) ===");
+var apt1 = new Appointment(1, 1, DateTime.Now.AddHours(2), 45);
+var apt2 = new Appointment(2, 2, DateTime.Now.AddDays(1), 30);
+var apt3 = new Appointment(3, 1, DateTime.Now.AddDays(-1), 20);
+
+Console.WriteLine(apt1);
+Console.WriteLine(apt2);
+Console.WriteLine(apt3);
+
+Console.WriteLine("\nПеревірка завершення прийому apt1:");
+Console.WriteLine($"Перше завершення: {apt1.Complete()} (Статус: {apt1.Status})");
+Console.WriteLine($"Спроба скасувати вже завершений: {apt1.Cancel("Запізнився")} (Статус: {apt1.Status})");
+
+Console.WriteLine("\nПеревірка скасування прийому apt2:");
+Console.WriteLine($"Скасування: {apt2.Cancel("Зміна планів пацієнта")}");
+Console.WriteLine(apt2);
+
 var patientManager = new PatientManager();
 patientManager.Add(new Patient("Іван", "Петренко", DateTime.Today.AddYears(-41), "A+", "0501234567"));
 patientManager.Add(new Patient("Олена", "Коваль", DateTime.Today.AddYears(-33), "B-", "0672345678"));
