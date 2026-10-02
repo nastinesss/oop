@@ -186,6 +186,11 @@ namespace ClinicApp
             return result;
         }
 
+        public Appointment[] GetByDate(int year, int month, int day)
+        {
+            return GetByDate(new DateTime(year, month, day));
+        }
+
         public Appointment[] GetUpcoming()
         {
             int matchCount = 0;

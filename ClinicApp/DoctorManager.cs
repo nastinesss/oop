@@ -49,6 +49,12 @@ namespace ClinicApp
             return null;
         }
 
+        public bool TryFindById(int id, out Doctor? doctor)
+        {
+            doctor = FindById(id);
+            return doctor != null;
+        }
+
         public Doctor[] FindBySpeciality(string speciality)
         {
             int matchCount = 0;
@@ -65,6 +71,30 @@ namespace ClinicApp
             for (int i = 0; i < _count; i++)
             {
                 if (_doctors[i].Speciality.ToString().Contains(speciality, StringComparison.OrdinalIgnoreCase))
+                {
+                    result[index++] = _doctors[i];
+                }
+            }
+
+            return result;
+        }
+
+        public Doctor[] FindBySpeciality(Speciality speciality)
+        {
+            int matchCount = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_doctors[i].Speciality == speciality)
+                {
+                    matchCount++;
+                }
+            }
+
+            Doctor[] result = new Doctor[matchCount];
+            int index = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_doctors[i].Speciality == speciality)
                 {
                     result[index++] = _doctors[i];
                 }
