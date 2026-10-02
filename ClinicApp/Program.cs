@@ -4,13 +4,13 @@ RunGrowableTest();
 
 var clinic = new Clinic("Здоров'я Плюс");
 
-clinic.Patients.Add(new Patient("Іван", "Петренко", DateTime.Today.AddYears(-41), "A+", "0501234567"));
-clinic.Patients.Add(new Patient("Олена", "Коваль", DateTime.Today.AddYears(-33), "B-", "0672345678"));
-clinic.Patients.Add(new Patient("Максим", "Бойко", DateTime.Today.AddYears(-16), "0+", "0933456789"));
+clinic.Patients.Add(new Patient("Іван", "Петренко", DateTime.Today.AddYears(-41), BloodType.APositive, "0501234567"));
+clinic.Patients.Add(new Patient("Олена", "Коваль", DateTime.Today.AddYears(-33), BloodType.BNegative, "0672345678"));
+clinic.Patients.Add(new Patient("Максим", "Бойко", DateTime.Today.AddYears(-16), BloodType.OPositive, "0933456789"));
 
-clinic.Doctors.Add(new Doctor("Олександр", "Мельник", "Кардіологія", "DOC-10293", "0509876543") { WorkStartHour = 8, WorkEndHour = 16 });
-clinic.Doctors.Add(new Doctor("Наталія", "Шевченко", "Педіатрія", "DOC-20394", "0673344556") { WorkStartHour = 9, WorkEndHour = 18 });
-clinic.Doctors.Add(new Doctor("Сергій", "Бондар", "Неврологія", "DOC-44812", "0671122334") { WorkStartHour = 12, WorkEndHour = 20 });
+clinic.Doctors.Add(new Doctor("Олександр", "Мельник", Speciality.Cardiology, "DOC-10293", "0509876543") { Schedule = new WorkSchedule(8, 16) });
+clinic.Doctors.Add(new Doctor("Наталія", "Шевченко", Speciality.Pediatrics, "DOC-20394", "0673344556") { Schedule = new WorkSchedule(9, 18) });
+clinic.Doctors.Add(new Doctor("Сергій", "Бондар", Speciality.Neurology, "DOC-44812", "0671122334") { Schedule = new WorkSchedule(12, 20) });
 
 clinic.Appointments.Book(1, 1, DateTime.Today.AddHours(10), 30);
 clinic.Appointments.Book(2, 2, DateTime.Today.AddHours(14), 45);
@@ -67,7 +67,6 @@ while (appRunning)
     }
 }
 
-
 static void RunGrowableTest()
 {
     Console.WriteLine("=== Демонстрація Task 8: GrowablePatientManager ===");
@@ -77,7 +76,7 @@ static void RunGrowableTest()
 
     for (int i = 1; i <= 20; i++)
     {
-        var p = new Patient($"Тест{i}", $"Пацієнт{i}", new DateTime(1995, 5, 10), "A+", "0500000000");
+        var p = new Patient($"Тест{i}", $"Пацієнт{i}", new DateTime(1995, 5, 10), BloodType.APositive, "0500000000");
         dynamicManager.Add(p);
         Console.WriteLine($"Додано #{i}: Count = {dynamicManager.Count}, Capacity = {dynamicManager.Capacity}");
     }
@@ -118,8 +117,13 @@ static void RunPatientsMenu(Clinic clinic)
                 string lastName = Console.ReadLine()!;
                 Console.Write("Введіть дату народження (рррр-мм-дд): ");
                 DateTime dob = DateTime.Parse(Console.ReadLine()!);
-                Console.Write("Введіть групу крові: ");
-                string blood = Console.ReadLine()!;
+
+                Console.WriteLine("Оберіть групу крові:");
+                Console.WriteLine("0 - Unknown, 1 - APositive, 2 - ANegative, 3 - BPositive, 4 - BNegative, 5 - ABPositive, 6 - ABNegative, 7 - OPositive, 8 - ONegative");
+                Console.Write("Номер групи крові: ");
+                int bloodChoice = int.TryParse(Console.ReadLine(), out int bc) ? bc : 0;
+                BloodType blood = (BloodType)bloodChoice;
+
                 Console.Write("Введіть телефон: ");
                 string phone = Console.ReadLine()!;
 
@@ -172,8 +176,13 @@ static void RunDoctorsMenu(Clinic clinic)
                 string firstName = Console.ReadLine()!;
                 Console.Write("Введіть прізвище: ");
                 string lastName = Console.ReadLine()!;
-                Console.Write("Введіть спеціальність: ");
-                string speciality = Console.ReadLine()!;
+
+                Console.WriteLine("Оберіть спеціальність:");
+                Console.WriteLine("0 - General, 1 - Cardiology, 2 - Neurology, 3 - Pediatrics, 4 - Surgery, 5 - Orthopedics, 6 - Dermatology, 7 - Emergency");
+                Console.Write("Номер спеціальності: ");
+                int specChoice = int.TryParse(Console.ReadLine(), out int sc) ? sc : 0;
+                Speciality speciality = (Speciality)specChoice;
+
                 Console.Write("Введіть номер ліцензії: ");
                 string license = Console.ReadLine()!;
                 Console.Write("Введіть телефон: ");
@@ -187,10 +196,13 @@ static void RunDoctorsMenu(Clinic clinic)
                 Console.Write("Година кінця (за замовчуванням 17): ");
                 if (int.TryParse(Console.ReadLine(), out int eh) && eh >= 0 && eh <= 23) endHour = eh;
 
-                clinic.Doctors.Add(new Doctor(firstName, lastName, speciality, license, phone) { WorkStartHour = startHour, WorkEndHour = endHour });
+                clinic.Doctors.Add(new Doctor(firstName, lastName, speciality, license, phone)
+                {
+                    Schedule = new WorkSchedule(startHour, endHour)
+                });
                 break;
             case "3":
-                Console.Write("Введіть спеціальність: ");
+                Console.Write("Введіть спеціальність (назву або частину): ");
                 var found = clinic.Doctors.FindBySpeciality(Console.ReadLine()!);
                 foreach (var d in found) Console.WriteLine(d);
                 break;

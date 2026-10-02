@@ -12,6 +12,18 @@ namespace ClinicApp
 
         public int Count => _count;
 
+        public Doctor? this[int index]
+        {
+            get
+            {
+                if (index >= 0 && index < _count)
+                {
+                    return _doctors[index];
+                }
+                return null;
+            }
+        }
+
         public void Add(Doctor doctor)
         {
             if (_count >= MaxDoctors)
@@ -37,12 +49,18 @@ namespace ClinicApp
             return null;
         }
 
+        public bool TryFindById(int id, out Doctor? doctor)
+        {
+            doctor = FindById(id);
+            return doctor != null;
+        }
+
         public Doctor[] FindBySpeciality(string speciality)
         {
             int matchCount = 0;
             for (int i = 0; i < _count; i++)
             {
-                if (_doctors[i].Speciality.Contains(speciality, StringComparison.OrdinalIgnoreCase))
+                if (_doctors[i].Speciality.ToString().Contains(speciality, StringComparison.OrdinalIgnoreCase))
                 {
                     matchCount++;
                 }
@@ -52,7 +70,31 @@ namespace ClinicApp
             int index = 0;
             for (int i = 0; i < _count; i++)
             {
-                if (_doctors[i].Speciality.Contains(speciality, StringComparison.OrdinalIgnoreCase))
+                if (_doctors[i].Speciality.ToString().Contains(speciality, StringComparison.OrdinalIgnoreCase))
+                {
+                    result[index++] = _doctors[i];
+                }
+            }
+
+            return result;
+        }
+
+        public Doctor[] FindBySpeciality(Speciality speciality)
+        {
+            int matchCount = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_doctors[i].Speciality == speciality)
+                {
+                    matchCount++;
+                }
+            }
+
+            Doctor[] result = new Doctor[matchCount];
+            int index = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_doctors[i].Speciality == speciality)
                 {
                     result[index++] = _doctors[i];
                 }
@@ -140,7 +182,7 @@ namespace ClinicApp
                 bool alreadySeen = false;
                 for (int j = 0; j < i; j++)
                 {
-                    if (string.Equals(_doctors[i].Speciality, _doctors[j].Speciality, StringComparison.OrdinalIgnoreCase))
+                    if (_doctors[i].Speciality == _doctors[j].Speciality)
                     {
                         alreadySeen = true;
                         break;
@@ -152,7 +194,7 @@ namespace ClinicApp
                     int specCount = 0;
                     for (int k = 0; k < _count; k++)
                     {
-                        if (string.Equals(_doctors[i].Speciality, _doctors[k].Speciality, StringComparison.OrdinalIgnoreCase))
+                        if (_doctors[i].Speciality == _doctors[k].Speciality)
                         {
                             specCount++;
                         }

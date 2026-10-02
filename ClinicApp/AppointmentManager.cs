@@ -15,6 +15,18 @@ namespace ClinicApp
 
         public int Count => _count;
 
+        public Appointment? this[int index]
+        {
+            get
+            {
+                if (index >= 0 && index < _count)
+                {
+                    return _appointments[index];
+                }
+                return null;
+            }
+        }
+
         public AppointmentManager(PatientManager patients, DoctorManager doctors)
         {
             _patients = patients;
@@ -172,6 +184,11 @@ namespace ClinicApp
                 }
             }
             return result;
+        }
+
+        public Appointment[] GetByDate(int year, int month, int day)
+        {
+            return GetByDate(new DateTime(year, month, day));
         }
 
         public Appointment[] GetUpcoming()
