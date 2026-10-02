@@ -51,7 +51,7 @@ namespace ClinicApp
         public override string ToString()
         {
             string status = IsAvailableNow ? "доступний" : "не в робочий час";
-            return $"[{Id}] {FullName} | {Speciality} | Графік: {WorkSchedule} | Ліцензія: {LicenseNumber} | Тел: {Phone} | Статус: {status}";
+            return $"[{Id}] {FullName} | {ClinicFormatter.FormatSpeciality(Speciality)} | Графік: {WorkSchedule} | Ліцензія: {LicenseNumber} | Тел: {ClinicFormatter.FormatPhone(Phone)} | Статус: {status}";
         }
     }
 }
