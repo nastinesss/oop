@@ -42,7 +42,7 @@ namespace ClinicApp
             int matchCount = 0;
             for (int i = 0; i < _count; i++)
             {
-                if (_doctors[i].Speciality.Contains(speciality, StringComparison.OrdinalIgnoreCase))
+                if (_doctors[i].Speciality.ToString().Contains(speciality, StringComparison.OrdinalIgnoreCase))
                 {
                     matchCount++;
                 }
@@ -52,7 +52,7 @@ namespace ClinicApp
             int index = 0;
             for (int i = 0; i < _count; i++)
             {
-                if (_doctors[i].Speciality.Contains(speciality, StringComparison.OrdinalIgnoreCase))
+                if (_doctors[i].Speciality.ToString().Contains(speciality, StringComparison.OrdinalIgnoreCase))
                 {
                     result[index++] = _doctors[i];
                 }
@@ -140,7 +140,7 @@ namespace ClinicApp
                 bool alreadySeen = false;
                 for (int j = 0; j < i; j++)
                 {
-                    if (string.Equals(_doctors[i].Speciality, _doctors[j].Speciality, StringComparison.OrdinalIgnoreCase))
+                    if (_doctors[i].Speciality == _doctors[j].Speciality)
                     {
                         alreadySeen = true;
                         break;
@@ -152,7 +152,7 @@ namespace ClinicApp
                     int specCount = 0;
                     for (int k = 0; k < _count; k++)
                     {
-                        if (string.Equals(_doctors[i].Speciality, _doctors[k].Speciality, StringComparison.OrdinalIgnoreCase))
+                        if (_doctors[i].Speciality == _doctors[k].Speciality)
                         {
                             specCount++;
                         }

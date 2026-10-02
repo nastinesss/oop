@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ClinicApp/ClinicApp.csproj" />
+  <Project Path="Lab-01/Lab-01.csproj" />
+  <Project Path="Lab02/Lab02.csproj" Id="94e0827d-c5d6-4a86-9903-3cca9f9fffea" />
+</Solution>

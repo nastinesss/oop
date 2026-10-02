@@ -11,7 +11,7 @@ namespace ClinicApp
         public int Id { get; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string Speciality { get; set; }
+        public Speciality Speciality { get; set; }
         public string LicenseNumber { get; set; }
         public string Phone { get; set; }
         public int WorkStartHour { get; set; } = 8;
@@ -23,16 +23,16 @@ namespace ClinicApp
         public bool IsAvailableNow => CanAcceptAt(DateTime.Now.Hour);
 
         public Doctor()
-            : this("Черговий", "Лікар", "Загальна практика")
+            : this("Черговий", "Лікар", Speciality.General)
         {
         }
 
-        public Doctor(string firstName, string lastName, string speciality)
+        public Doctor(string firstName, string lastName, Speciality speciality)
             : this(firstName, lastName, speciality, "UA-00000", "0000000000")
         {
         }
 
-        public Doctor(string firstName, string lastName, string speciality, string licenseNumber, string phone)
+        public Doctor(string firstName, string lastName, Speciality speciality, string licenseNumber, string phone)
         {
             Id = _nextId++;
             FirstName = firstName;
