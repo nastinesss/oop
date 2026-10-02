@@ -8,9 +8,9 @@ clinic.Patients.Add(new Patient("Іван", "Петренко", DateTime.Today.A
 clinic.Patients.Add(new Patient("Олена", "Коваль", DateTime.Today.AddYears(-33), BloodType.BNegative, "0672345678"));
 clinic.Patients.Add(new Patient("Максим", "Бойко", DateTime.Today.AddYears(-16), BloodType.OPositive, "0933456789"));
 
-clinic.Doctors.Add(new Doctor("Олександр", "Мельник", Speciality.Cardiology, "DOC-10293", "0509876543") { WorkStartHour = 8, WorkEndHour = 16 });
-clinic.Doctors.Add(new Doctor("Наталія", "Шевченко", Speciality.Pediatrics, "DOC-20394", "0673344556") { WorkStartHour = 9, WorkEndHour = 18 });
-clinic.Doctors.Add(new Doctor("Сергій", "Бондар", Speciality.Neurology, "DOC-44812", "0671122334") { WorkStartHour = 12, WorkEndHour = 20 });
+clinic.Doctors.Add(new Doctor("Олександр", "Мельник", Speciality.Cardiology, "DOC-10293", "0509876543") { Schedule = new WorkSchedule(8, 16) });
+clinic.Doctors.Add(new Doctor("Наталія", "Шевченко", Speciality.Pediatrics, "DOC-20394", "0673344556") { Schedule = new WorkSchedule(9, 18) });
+clinic.Doctors.Add(new Doctor("Сергій", "Бондар", Speciality.Neurology, "DOC-44812", "0671122334") { Schedule = new WorkSchedule(12, 20) });
 
 clinic.Appointments.Book(1, 1, DateTime.Today.AddHours(10), 30);
 clinic.Appointments.Book(2, 2, DateTime.Today.AddHours(14), 45);
@@ -196,7 +196,10 @@ static void RunDoctorsMenu(Clinic clinic)
                 Console.Write("Година кінця (за замовчуванням 17): ");
                 if (int.TryParse(Console.ReadLine(), out int eh) && eh >= 0 && eh <= 23) endHour = eh;
 
-                clinic.Doctors.Add(new Doctor(firstName, lastName, speciality, license, phone) { WorkStartHour = startHour, WorkEndHour = endHour });
+                clinic.Doctors.Add(new Doctor(firstName, lastName, speciality, license, phone)
+                {
+                    Schedule = new WorkSchedule(startHour, endHour)
+                });
                 break;
             case "3":
                 Console.Write("Введіть спеціальність (назву або частину): ");

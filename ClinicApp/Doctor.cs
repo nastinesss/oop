@@ -14,13 +14,13 @@ namespace ClinicApp
         public Speciality Speciality { get; set; }
         public string LicenseNumber { get; set; }
         public string Phone { get; set; }
-        public int WorkStartHour { get; set; } = 8;
-        public int WorkEndHour { get; set; } = 17;
+
+        public WorkSchedule Schedule { get; set; } = new WorkSchedule(8, 17);
 
         public string FullName => $"{FirstName} {LastName}";
-        public int WorkingHoursPerDay => WorkEndHour - WorkStartHour;
-        public string WorkSchedule => $"{WorkStartHour:D2}:00–{WorkEndHour:D2}:00";
-        public bool IsAvailableNow => CanAcceptAt(DateTime.Now.Hour);
+        public int WorkingHoursPerDay => Schedule.HoursPerDay;
+        public string WorkSchedule => Schedule.Display;
+        public bool IsAvailableNow => Schedule.IsNow;
 
         public Doctor()
             : this("Черговий", "Лікар", Speciality.General)
@@ -40,13 +40,12 @@ namespace ClinicApp
             Speciality = speciality;
             LicenseNumber = licenseNumber;
             Phone = phone;
-            WorkStartHour = 8;
-            WorkEndHour = 17;
+            Schedule = new WorkSchedule(8, 17);
         }
 
         public bool CanAcceptAt(int hour)
         {
-            return hour >= WorkStartHour && hour < WorkEndHour;
+            return Schedule.Contains(hour);
         }
 
         public override string ToString()
