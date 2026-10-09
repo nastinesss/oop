@@ -1,21 +1,58 @@
 ﻿using ClinicApp.Enums;
 using ClinicApp.Utils;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ClinicApp.Models
 {
-    internal class Doctor
+    public class Doctor
     {
         private static int _nextId = 1;
 
+        // Приватні поля (інкапсуляція)
+        private string _firstName = string.Empty;
+        private string _lastName = string.Empty;
+        private string _licenseNumber = string.Empty;
+        private string _phone = string.Empty;
+
         public int Id { get; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+
+        public string FirstName
+        {
+            get => _firstName;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Ім'я лікаря не може бути порожнім.", nameof(FirstName));
+
+                _firstName = value.Trim();
+            }
+        }
+
+        public string LastName
+        {
+            get => _lastName;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Прізвище лікаря не може бути порожнім.", nameof(LastName));
+
+                _lastName = value.Trim();
+            }
+        }
+
         public Speciality Speciality { get; set; }
-        public string LicenseNumber { get; set; }
-        public string Phone { get; set; }
+
+        public string LicenseNumber
+        {
+            get => _licenseNumber;
+            set => _licenseNumber = value?.Trim() ?? string.Empty;
+        }
+
+        public string Phone
+        {
+            get => _phone;
+            set => _phone = value?.Trim() ?? string.Empty;
+        }
 
         public WorkSchedule Schedule { get; set; } = new WorkSchedule(8, 17);
 

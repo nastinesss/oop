@@ -1,18 +1,31 @@
 ﻿using ClinicApp.Enums;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ClinicApp.Models
 {
-    internal class Appointment
+    public class Appointment
     {
         private static int _nextId = 1;
+
+        // Приватне поле для дати
+        private DateTime _scheduledAt;
 
         public int Id { get; }
         public int PatientId { get; }
         public int DoctorId { get; }
-        public DateTime ScheduledAt { get; set; }
+
+        public DateTime ScheduledAt
+        {
+            get => _scheduledAt;
+            set
+            {
+                if (value < DateTime.Now.AddMinutes(-5))
+                    throw new ArgumentException("Час прийому не може бути в минулому.", nameof(ScheduledAt));
+
+                _scheduledAt = value;
+            }
+        }
+
         public int DurationMinutes { get; set; }
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
         public string Notes { get; private set; }
