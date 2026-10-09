@@ -71,32 +71,14 @@ public static class ClinicValidator
         return trimmed;
     }
 
-    public static string ValidateLicenseNumber(string? license)
+    public static int ValidatePositiveNumber(int number, string paramName)
     {
-        if (string.IsNullOrWhiteSpace(license))
+        if (number <= 0)
         {
-            throw new ArgumentException("Номер ліцензії не може бути порожнім або містити лише пробіли.", nameof(license));
+            throw new ArgumentOutOfRangeException(paramName, "Значення має бути більшим за 0.");
         }
 
-        return license.Trim();
-    }
-
-    public static void ValidateWorkSchedule(int start, int end)
-    {
-        if (start < 0 || start > 23)
-        {
-            throw new ArgumentOutOfRangeException(nameof(start), "Година початку має бути від 0 до 23.");
-        }
-
-        if (end < 1 || end > 24)
-        {
-            throw new ArgumentOutOfRangeException(nameof(end), "Година завершення має бути від 1 до 24.");
-        }
-
-        if (start >= end)
-        {
-            throw new ArgumentException("Година початку зміни має бути меншою за годину закінчення.");
-        }
+        return number;
     }
 
     public static DateTime ValidateAppointmentDate(DateTime date)
@@ -107,15 +89,5 @@ public static class ClinicValidator
         }
 
         return date;
-    }
-
-    public static int ValidatePositiveNumber(int number, string paramName)
-    {
-        if (number <= 0)
-        {
-            throw new ArgumentOutOfRangeException(paramName, "Значення має бути більшим за 0.");
-        }
-
-        return number;
     }
 }
