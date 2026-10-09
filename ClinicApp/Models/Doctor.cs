@@ -18,27 +18,13 @@ namespace ClinicApp.Models
         public string FirstName
         {
             get => _firstName;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentException("Ім'я лікаря не може бути порожнім.", nameof(FirstName));
-                }
-                _firstName = value.Trim();
-            }
+            set => _firstName = ClinicValidator.ValidateName(value, nameof(FirstName));
         }
 
         public string LastName
         {
             get => _lastName;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentException("Прізвище лікаря не може бути порожнім.", nameof(LastName));
-                }
-                _lastName = value.Trim();
-            }
+            set => _lastName = ClinicValidator.ValidateName(value, nameof(LastName));
         }
 
         public Speciality Speciality { get; set; }
@@ -46,13 +32,13 @@ namespace ClinicApp.Models
         public string LicenseNumber
         {
             get => _licenseNumber;
-            set => _licenseNumber = value?.Trim() ?? string.Empty;
+            set => _licenseNumber = ClinicValidator.ValidateLicenseNumber(value);
         }
 
         public string Phone
         {
             get => _phone;
-            set => _phone = value?.Trim() ?? string.Empty;
+            set => _phone = ClinicValidator.ValidatePhone(value);
         }
 
         public WorkSchedule Schedule { get; set; } = new WorkSchedule(8, 17);

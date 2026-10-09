@@ -18,46 +18,19 @@ namespace ClinicApp.Models
         public string FirstName
         {
             get => _firstName;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentException("Ім'я не може бути порожнім.", nameof(FirstName));
-                }
-                _firstName = value.Trim();
-            }
+            set => _firstName = ClinicValidator.ValidateName(value, nameof(FirstName));
         }
 
         public string LastName
         {
             get => _lastName;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentException("Прізвище не може бути порожнім.", nameof(LastName));
-                }
-                _lastName = value.Trim();
-            }
+            set => _lastName = ClinicValidator.ValidateName(value, nameof(LastName));
         }
 
         public DateTime DateOfBirth
         {
             get => _dateOfBirth;
-            set
-            {
-                if (value.Date > DateTime.Today)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(DateOfBirth), "Дата народження не може бути в майбутньому.");
-                }
-
-                if (value.Date < DateTime.Today.AddYears(-130))
-                {
-                    throw new ArgumentOutOfRangeException(nameof(DateOfBirth), "Вік пацієнта не може перевищувати 130 років.");
-                }
-
-                _dateOfBirth = value;
-            }
+            set => _dateOfBirth = ClinicValidator.ValidateDateOfBirth(value);
         }
 
         public BloodType BloodType { get; set; }
@@ -65,7 +38,7 @@ namespace ClinicApp.Models
         public string Phone
         {
             get => _phone;
-            set => _phone = value?.Trim() ?? string.Empty;
+            set => _phone = ClinicValidator.ValidatePhone(value);
         }
 
         public string Email { get; set; } = string.Empty;
