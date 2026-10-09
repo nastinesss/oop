@@ -18,13 +18,37 @@ namespace ClinicApp.Models
         public string FirstName
         {
             get => _firstName;
-            set => _firstName = ClinicValidator.ValidateName(value, nameof(FirstName));
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new ArgumentException("Ім'я лікаря не може бути порожнім або містити лише пробіли.", nameof(FirstName));
+                }
+                string trimmed = value.Trim();
+                if (trimmed.Length > 50)
+                {
+                    throw new ArgumentException("Ім'я лікаря не може перевищувати 50 символів.", nameof(FirstName));
+                }
+                _firstName = trimmed;
+            }
         }
 
         public string LastName
         {
             get => _lastName;
-            set => _lastName = ClinicValidator.ValidateName(value, nameof(LastName));
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new ArgumentException("Прізвище лікаря не може бути порожнім або містити лише пробіли.", nameof(LastName));
+                }
+                string trimmed = value.Trim();
+                if (trimmed.Length > 50)
+                {
+                    throw new ArgumentException("Прізвище лікаря не може перевищувати 50 символів.", nameof(LastName));
+                }
+                _lastName = trimmed;
+            }
         }
 
         public Speciality Speciality { get; set; }
@@ -32,13 +56,45 @@ namespace ClinicApp.Models
         public string LicenseNumber
         {
             get => _licenseNumber;
-            set => _licenseNumber = ClinicValidator.ValidateLicenseNumber(value);
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new ArgumentException("Номер ліцензії не може бути порожнім або містити лише пробіли.", nameof(LicenseNumber));
+                }
+                _licenseNumber = value.Trim();
+            }
         }
 
         public string Phone
         {
             get => _phone;
-            set => _phone = ClinicValidator.ValidatePhone(value);
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new ArgumentException("Номер телефону не може бути порожнім.", nameof(Phone));
+                }
+                string trimmed = value.Trim();
+                bool valid = (trimmed.Length == 10) || (trimmed.StartsWith("+38") && trimmed.Length == 13);
+                if (valid)
+                {
+                    int startIndex = trimmed.StartsWith("+") ? 1 : 0;
+                    for (int i = startIndex; i < trimmed.Length; i++)
+                    {
+                        if (!char.IsDigit(trimmed[i]))
+                        {
+                            valid = false;
+                            break;
+                        }
+                    }
+                }
+                if (!valid)
+                {
+                    throw new ArgumentException("Номер телефону повинен містити тільки цифри (10 цифр або +38 та 10 цифр).", nameof(Phone));
+                }
+                _phone = trimmed;
+            }
         }
 
         public WorkSchedule Schedule { get; set; } = new WorkSchedule(8, 17);
@@ -54,7 +110,7 @@ namespace ClinicApp.Models
         }
 
         public Doctor(string firstName, string lastName, Speciality speciality)
-            : this(firstName, lastName, speciality, "UA-00000", "0000000000")
+            : this(firstName, lastName, speciality, "UA-00000", "0500000000")
         {
         }
 
