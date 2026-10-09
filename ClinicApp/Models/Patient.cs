@@ -12,6 +12,7 @@ namespace ClinicApp.Models
         private string _lastName = string.Empty;
         private DateTime _dateOfBirth;
         private string _phone = string.Empty;
+        private string _email = string.Empty;
 
         public int Id { get; }
 
@@ -41,7 +42,11 @@ namespace ClinicApp.Models
             set => _phone = ClinicValidator.ValidatePhone(value);
         }
 
-        public string Email { get; set; } = string.Empty;
+        public string Email
+        {
+            get => _email;
+            set => _email = ClinicValidator.ValidateEmail(value);
+        }
 
         public string FullName => $"{FirstName} {LastName}";
 
