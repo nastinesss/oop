@@ -8,7 +8,6 @@ namespace ClinicApp.Models
     {
         private static int _nextId = 1;
 
-        // Приватні поля (інкапсуляція)
         private string _firstName = string.Empty;
         private string _lastName = string.Empty;
         private string _licenseNumber = string.Empty;
@@ -22,8 +21,9 @@ namespace ClinicApp.Models
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
+                {
                     throw new ArgumentException("Ім'я лікаря не може бути порожнім.", nameof(FirstName));
-
+                }
                 _firstName = value.Trim();
             }
         }
@@ -34,8 +34,9 @@ namespace ClinicApp.Models
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
+                {
                     throw new ArgumentException("Прізвище лікаря не може бути порожнім.", nameof(LastName));
-
+                }
                 _lastName = value.Trim();
             }
         }

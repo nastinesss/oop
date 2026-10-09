@@ -7,8 +7,8 @@ namespace ClinicApp.Models
     {
         private static int _nextId = 1;
 
-        // Приватне поле для дати
         private DateTime _scheduledAt;
+        private int _durationMinutes;
 
         public int Id { get; }
         public int PatientId { get; }
@@ -20,13 +20,26 @@ namespace ClinicApp.Models
             set
             {
                 if (value < DateTime.Now.AddMinutes(-5))
+                {
                     throw new ArgumentException("Час прийому не може бути в минулому.", nameof(ScheduledAt));
-
+                }
                 _scheduledAt = value;
             }
         }
 
-        public int DurationMinutes { get; set; }
+        public int DurationMinutes
+        {
+            get => _durationMinutes;
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(DurationMinutes), "Тривалість прийому має бути більшою за 0 хвилин.");
+                }
+                _durationMinutes = value;
+            }
+        }
+
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
         public string Notes { get; private set; }
 

@@ -8,7 +8,6 @@ namespace ClinicApp.Models
     {
         private static int _nextId = 1;
 
-        // Приватні поля (інкапсуляція)
         private string _firstName = string.Empty;
         private string _lastName = string.Empty;
         private DateTime _dateOfBirth;
@@ -22,8 +21,9 @@ namespace ClinicApp.Models
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
+                {
                     throw new ArgumentException("Ім'я не може бути порожнім.", nameof(FirstName));
-
+                }
                 _firstName = value.Trim();
             }
         }
@@ -34,8 +34,9 @@ namespace ClinicApp.Models
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
+                {
                     throw new ArgumentException("Прізвище не може бути порожнім.", nameof(LastName));
-
+                }
                 _lastName = value.Trim();
             }
         }
@@ -46,7 +47,14 @@ namespace ClinicApp.Models
             set
             {
                 if (value.Date > DateTime.Today)
+                {
                     throw new ArgumentOutOfRangeException(nameof(DateOfBirth), "Дата народження не може бути в майбутньому.");
+                }
+
+                if (value.Date < DateTime.Today.AddYears(-130))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(DateOfBirth), "Вік пацієнта не може перевищувати 130 років.");
+                }
 
                 _dateOfBirth = value;
             }
@@ -93,7 +101,6 @@ namespace ClinicApp.Models
         public Patient(string firstName, string lastName, DateTime dob, BloodType bloodType, string phone, string email = "")
         {
             Id = _nextId++;
-            // Присвоєння через властивості змушує відпрацьовувати сеттери з валідацією
             FirstName = firstName;
             LastName = lastName;
             DateOfBirth = dob;
