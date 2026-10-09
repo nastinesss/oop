@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 namespace ClinicApp.Utils;
 
 public static class ClinicValidator
 {
+    private static readonly Regex PhoneRegex = new Regex(@"^(\+38)?\d{10}$", RegexOptions.Compiled);
+    private static readonly Regex EmailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
+
     public static string ValidateName(string? value, string fieldName)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            throw new ArgumentException($"{fieldName} не може бути порожнім.", fieldName);
+            throw new ArgumentException($"{fieldName} не може бути порожнім або містити лише пробіли.", fieldName);
         }
 
         string trimmed = value.Trim();
@@ -27,9 +31,9 @@ public static class ClinicValidator
             throw new ArgumentOutOfRangeException(nameof(dob), "Дата народження не може бути в майбутньому.");
         }
 
-        if (dob.Date < DateTime.Today.AddYears(-130))
+        if (dob.Year < 1900)
         {
-            throw new ArgumentOutOfRangeException(nameof(dob), "Вік пацієнта не може перевищувати 130 років.");
+            throw new ArgumentOutOfRangeException(nameof(dob), "Дата народження не може бути раніше 1900 року.");
         }
 
         return dob;
@@ -43,22 +47,9 @@ public static class ClinicValidator
         }
 
         string trimmed = phone.Trim();
-        int digitCount = 0;
-        foreach (char c in trimmed)
+        if (!PhoneRegex.IsMatch(trimmed))
         {
-            if (char.IsDigit(c))
-            {
-                digitCount++;
-            }
-            else if (c != '+' && c != '-' && c != '(' && c != ')' && c != ' ')
-            {
-                throw new ArgumentException("Номер телефону містить недопустимі символи.", nameof(phone));
-            }
-        }
-
-        if (digitCount < 10 || digitCount > 15)
-        {
-            throw new ArgumentException("Номер телефону повинен містити від 10 до 15 цифр.", nameof(phone));
+            throw new ArgumentException("Номер телефону повинен містити 10 цифр (або у форматі +38 та 10 цифр).", nameof(phone));
         }
 
         return trimmed;
@@ -72,12 +63,9 @@ public static class ClinicValidator
         }
 
         string trimmed = email.Trim();
-        int atIndex = trimmed.IndexOf('@');
-        int dotIndex = trimmed.LastIndexOf('.');
-
-        if (atIndex <= 0 || dotIndex <= atIndex + 1 || dotIndex >= trimmed.Length - 1 || trimmed.Contains(' '))
+        if (!EmailRegex.IsMatch(trimmed))
         {
-            throw new ArgumentException("Некоректний формат електронної пошти.", nameof(email));
+            throw new ArgumentException("Некоректний формат email.", nameof(email));
         }
 
         return trimmed;
@@ -87,7 +75,7 @@ public static class ClinicValidator
     {
         if (string.IsNullOrWhiteSpace(license))
         {
-            throw new ArgumentException("Номер ліцензії не може бути порожнім.", nameof(license));
+            throw new ArgumentException("Номер ліцензії не може бути порожнім або містити лише пробіли.", nameof(license));
         }
 
         return license.Trim();
@@ -102,7 +90,7 @@ public static class ClinicValidator
 
         if (end < 1 || end > 24)
         {
-            throw new ArgumentOutOfRangeException(nameof(end), "Година закінчення має бути від 1 до 24.");
+            throw new ArgumentOutOfRangeException(nameof(end), "Година завершення має бути від 1 до 24.");
         }
 
         if (start >= end)
@@ -121,13 +109,13 @@ public static class ClinicValidator
         return date;
     }
 
-    public static int ValidateDuration(int durationMinutes)
+    public static int ValidatePositiveNumber(int number, string paramName)
     {
-        if (durationMinutes <= 0)
+        if (number <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(durationMinutes), "Тривалість має бути більшою за 0 хвилин.");
+            throw new ArgumentOutOfRangeException(paramName, "Значення має бути більшим за 0.");
         }
 
-        return durationMinutes;
+        return number;
     }
 }

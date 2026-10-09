@@ -12,60 +12,26 @@ namespace ClinicApp.Models
         private string _lastName = string.Empty;
         private DateTime _dateOfBirth;
         private string _phone = string.Empty;
+        private string _email = string.Empty;
 
         public int Id { get; }
 
         public string FirstName
         {
             get => _firstName;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentException("Ім'я не може бути порожнім або містити лише пробіли.", nameof(FirstName));
-                }
-                string trimmed = value.Trim();
-                if (trimmed.Length > 50)
-                {
-                    throw new ArgumentException("Ім'я не може перевищувати 50 символів.", nameof(FirstName));
-                }
-                _firstName = trimmed;
-            }
+            set => _firstName = ClinicValidator.ValidateName(value, nameof(FirstName));
         }
 
         public string LastName
         {
             get => _lastName;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentException("Прізвище не може бути порожнім або містити лише пробіли.", nameof(LastName));
-                }
-                string trimmed = value.Trim();
-                if (trimmed.Length > 50)
-                {
-                    throw new ArgumentException("Прізвище не може перевищувати 50 символів.", nameof(LastName));
-                }
-                _lastName = trimmed;
-            }
+            set => _lastName = ClinicValidator.ValidateName(value, nameof(LastName));
         }
 
         public DateTime DateOfBirth
         {
             get => _dateOfBirth;
-            set
-            {
-                if (value.Date > DateTime.Today)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(DateOfBirth), "Дата народження не може бути в майбутньому.");
-                }
-                if (value.Year < 1900)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(DateOfBirth), "Дата народження не може бути раніше 1900 року.");
-                }
-                _dateOfBirth = value;
-            }
+            set => _dateOfBirth = ClinicValidator.ValidateDateOfBirth(value);
         }
 
         public BloodType BloodType { get; set; }
@@ -73,35 +39,24 @@ namespace ClinicApp.Models
         public string Phone
         {
             get => _phone;
+            set => _phone = ClinicValidator.ValidatePhone(value);
+        }
+
+        public string Email
+        {
+            get => _email;
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    throw new ArgumentException("Номер телефону не може бути порожнім.", nameof(Phone));
+                    _email = string.Empty;
                 }
-                string trimmed = value.Trim();
-                bool valid = (trimmed.Length == 10) || (trimmed.StartsWith("+38") && trimmed.Length == 13);
-                if (valid)
+                else
                 {
-                    int startIndex = trimmed.StartsWith("+") ? 1 : 0;
-                    for (int i = startIndex; i < trimmed.Length; i++)
-                    {
-                        if (!char.IsDigit(trimmed[i]))
-                        {
-                            valid = false;
-                            break;
-                        }
-                    }
+                    _email = ClinicValidator.ValidateEmail(value);
                 }
-                if (!valid)
-                {
-                    throw new ArgumentException("Номер телефону повинен містити тільки цифри (10 цифр або +38 та 10 цифр).", nameof(Phone));
-                }
-                _phone = trimmed;
             }
         }
-
-        public string Email { get; set; } = string.Empty;
 
         public string FullName => $"{FirstName} {LastName}";
 

@@ -1,4 +1,5 @@
 ﻿using ClinicApp.Enums;
+using ClinicApp.Utils;
 using System;
 
 namespace ClinicApp.Models
@@ -17,27 +18,13 @@ namespace ClinicApp.Models
         public DateTime ScheduledAt
         {
             get => _scheduledAt;
-            set
-            {
-                if (value < DateTime.Now.AddMinutes(-5))
-                {
-                    throw new ArgumentException("Час запису не може бути в минулому.", nameof(ScheduledAt));
-                }
-                _scheduledAt = value;
-            }
+            set => _scheduledAt = ClinicValidator.ValidateAppointmentDate(value);
         }
 
         public int DurationMinutes
         {
             get => _durationMinutes;
-            set
-            {
-                if (value <= 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(DurationMinutes), "Тривалість має бути більшою за 0 хвилин.");
-                }
-                _durationMinutes = value;
-            }
+            set => _durationMinutes = ClinicValidator.ValidatePositiveNumber(value, nameof(DurationMinutes));
         }
 
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
