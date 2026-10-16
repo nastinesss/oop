@@ -12,12 +12,15 @@ namespace ClinicApp
         public DoctorManager Doctors { get; }
         public AppointmentManager Appointments { get; }
 
+        public MedicalRecordManager MedicalRecords { get; }
+
         public Clinic(string name)
         {
             Name = name;
             Patients = new PatientManager();
             Doctors = new DoctorManager();
             Appointments = new AppointmentManager(Patients, Doctors);
+            MedicalRecords = new MedicalRecordManager();
         }
 
         public void DisplaySchedule(DateTime date)
@@ -38,6 +41,7 @@ namespace ClinicApp
             Console.WriteLine($"║ Зареєстровано пацієнтів: {Patients.Count,-27}║");
             Console.WriteLine($"║ Працює лікарів:          {Doctors.Count,-27}║");
             Console.WriteLine($"║ Майбутніх записів:       {upcoming.Length,-27}║");
+            Console.WriteLine($"║ Всього медичних записів: {MedicalRecords.Count,-27}║");
             Console.WriteLine("╠══════════════════════════════════════════════════════╣");
             Console.WriteLine("║ Навантаження лікарів (майбутні прийоми):             ║");
 
