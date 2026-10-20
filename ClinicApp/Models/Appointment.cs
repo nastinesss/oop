@@ -1,15 +1,17 @@
 ﻿using ClinicApp.Enums;
+using ClinicApp.Interfaces;
 using ClinicApp.Utils;
 using System;
 
 namespace ClinicApp.Models
 {
-    public class Appointment
+    public class Appointment : IPayable, ICancellable
     {
         private static int _nextId = 1;
 
         private DateTime _scheduledAt;
         private int _durationMinutes;
+        private bool _isPaid = false;
 
         public int Id { get; }
         public int PatientId { get; }
@@ -33,6 +35,11 @@ namespace ClinicApp.Models
         public DateTime EndsAt => ScheduledAt.AddMinutes(DurationMinutes);
         public bool IsUpcoming => ScheduledAt > DateTime.Now && Status == AppointmentStatus.Scheduled;
 
+        public bool IsPaid => _isPaid;
+
+        public bool IsCancelled => Status == AppointmentStatus.Cancelled;
+        public string CancellationReason => IsCancelled ? Notes : "";
+
         public Appointment(int patientId, int doctorId, DateTime scheduledAt, int durationMinutes = 30)
         {
             Id = _nextId++;
@@ -42,6 +49,19 @@ namespace ClinicApp.Models
             DurationMinutes = durationMinutes;
             Status = AppointmentStatus.Scheduled;
             Notes = "";
+        }
+
+        public decimal GetCost()
+        {
+            return DurationMinutes * 10m;
+        }
+
+        public void MarkPaid()
+        {
+            if (!IsCancelled)
+            {
+                _isPaid = true;
+            }
         }
 
         public bool Cancel(string reason = "")
@@ -72,7 +92,7 @@ namespace ClinicApp.Models
 
         public override string ToString()
         {
-            string baseStr = $"[{Id}] {ScheduledAt:yyyy-MM-dd HH:mm}–{EndsAt:HH:mm} ({DurationMinutes} хв) | Пацієнт: #{PatientId} | Лікар: #{DoctorId} | Статус: {Status}";
+            string baseStr = $"[{Id}] {ScheduledAt:yyyy-MM-dd HH:mm}–{EndsAt:HH:mm} ({DurationMinutes} хв) | Пацієнт: #{PatientId} | Лікар: #{DoctorId} | Статус: {Status} | Оплачено: {IsPaid}";
             if (Notes.Length > 0)
             {
                 baseStr += $" | Примітка: {Notes}";
