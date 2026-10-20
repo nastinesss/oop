@@ -46,6 +46,16 @@ namespace ClinicApp.Managers
             return null;
         }
 
+        public Appointment[] GetAll()
+        {
+            Appointment[] result = new Appointment[_count];
+            for (int i = 0; i < _count; i++)
+            {
+                result[i] = _appointments[i];
+            }
+            return result;
+        }
+
         public bool Book(int patientId, int doctorId, DateTime scheduledAt, int durationMinutes = 30)
         {
             if (_count >= MaxAppointments)
