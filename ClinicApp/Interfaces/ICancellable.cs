@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ClinicApp.Interfaces
 {
-    interface ICancellable
+    public interface ICancellable
     {
         bool IsCancelled { get; }
         string CancellationReason { get; }

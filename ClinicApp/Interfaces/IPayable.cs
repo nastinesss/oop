@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ClinicApp.Interfaces
 {
-    interface IPayable
+    public interface IPayable
     {
         decimal GetCost();
         bool IsPaid { get; }

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ClinicApp.Managers
 {
-    internal class AppointmentManager
+    public class AppointmentManager
     {
         private const int MaxAppointments = 500;
         private readonly Appointment[] _appointments = new Appointment[MaxAppointments];
