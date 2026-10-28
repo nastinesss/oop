@@ -1,103 +1,69 @@
 ﻿using ClinicApp.Enums;
 using ClinicApp.Interfaces;
-using ClinicApp.Utils;
-using System;
 
 namespace ClinicApp.Models
 {
     public class Appointment : IPayable, ICancellable
     {
-        private static int _nextId = 1;
+        public int Id { get; set; }
+        public int PatientId { get; set; }
+        public int DoctorId { get; set; }
+        public DateTime ScheduledAt { get; set; }
+        public int DurationMinutes { get; set; }
+        public AppointmentStatus Status { get; set; }
 
-        private DateTime _scheduledAt;
-        private int _durationMinutes;
-        private bool _isPaid = false;
-
-        public int Id { get; }
-        public int PatientId { get; }
-        public int DoctorId { get; }
-
-        public DateTime ScheduledAt
-        {
-            get => _scheduledAt;
-            set => _scheduledAt = ClinicValidator.ValidateAppointmentDate(value);
-        }
-
-        public int DurationMinutes
-        {
-            get => _durationMinutes;
-            set => _durationMinutes = ClinicValidator.ValidatePositiveNumber(value, nameof(DurationMinutes));
-        }
-
-        public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
-        public string Notes { get; private set; }
-
-        public DateTime EndsAt => ScheduledAt.AddMinutes(DurationMinutes);
-        public bool IsUpcoming => ScheduledAt > DateTime.Now && Status == AppointmentStatus.Scheduled;
-
-        public bool IsPaid => _isPaid;
-
-        public bool IsCancelled => Status == AppointmentStatus.Cancelled;
-        public string CancellationReason => IsCancelled ? Notes : "";
+        public bool IsPaid { get; set; }
+        public bool IsCancelled { get; set; }
+        public string CancellationReason { get; set; }
 
         public Appointment(int patientId, int doctorId, DateTime scheduledAt, int durationMinutes = 30)
         {
-            Id = _nextId++;
             PatientId = patientId;
             DoctorId = doctorId;
             ScheduledAt = scheduledAt;
             DurationMinutes = durationMinutes;
             Status = AppointmentStatus.Scheduled;
-            Notes = "";
+            IsPaid = false;
+            IsCancelled = false;
+            CancellationReason = string.Empty;
         }
 
-        public decimal GetCost()
+        public virtual decimal GetCost()
         {
             return DurationMinutes * 10m;
         }
 
+        public virtual string GetDescription()
+        {
+            return "Прийом";
+        }
+
+        public int GetPriority()
+        {
+            return 3;
+        }
+
         public void MarkPaid()
         {
-            if (!IsCancelled)
-            {
-                _isPaid = true;
-            }
+            IsPaid = true;
         }
 
         public bool Cancel(string reason = "")
         {
-            if (Status != AppointmentStatus.Scheduled)
+            if (Status == AppointmentStatus.Completed || Status == AppointmentStatus.Cancelled)
             {
                 return false;
             }
-
             Status = AppointmentStatus.Cancelled;
-            if (!string.IsNullOrWhiteSpace(reason))
-            {
-                Notes = reason;
-            }
-            return true;
-        }
-
-        public bool Complete()
-        {
-            if (Status != AppointmentStatus.Scheduled)
-            {
-                return false;
-            }
-
-            Status = AppointmentStatus.Completed;
+            IsCancelled = true;
+            CancellationReason = reason;
             return true;
         }
 
         public override string ToString()
         {
-            string baseStr = $"[{Id}] {ScheduledAt:yyyy-MM-dd HH:mm}–{EndsAt:HH:mm} ({DurationMinutes} хв) | Пацієнт: #{PatientId} | Лікар: #{DoctorId} | Статус: {Status} | Оплачено: {IsPaid}";
-            if (Notes.Length > 0)
-            {
-                baseStr += $" | Примітка: {Notes}";
-            }
-            return baseStr;
+            string timeRange = $"{ScheduledAt:dd.MM.yyyy HH:mm}–{ScheduledAt.AddMinutes(DurationMinutes):HH:mm}";
+            return $"[{Id}] {GetDescription()} | Пацієнт #{PatientId} → Лікар #{DoctorId} | {timeRange} | {Status} | {GetCost():F2} грн";
         }
     }
 }
