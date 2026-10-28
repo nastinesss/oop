@@ -257,6 +257,75 @@ namespace ClinicApp.Managers
             return result;
         }
 
+        public Appointment[] GetUrgent()
+        {
+            int matchCount = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is UrgentAppointment)
+                {
+                    matchCount++;
+                }
+            }
+
+            var result = new Appointment[matchCount];
+            int index = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is UrgentAppointment)
+                {
+                    result[index++] = _appointments[i];
+                }
+            }
+            return result;
+        }
+
+        public Appointment[] GetSpecialist()
+        {
+            int matchCount = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is SpecialistAppointment)
+                {
+                    matchCount++;
+                }
+            }
+
+            var result = new Appointment[matchCount];
+            int index = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is SpecialistAppointment)
+                {
+                    result[index++] = _appointments[i];
+                }
+            }
+            return result;
+        }
+
+        public Appointment[] GetRegular()
+        {
+            int matchCount = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is RegularAppointment)
+                {
+                    matchCount++;
+                }
+            }
+
+            var result = new Appointment[matchCount];
+            int index = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is RegularAppointment)
+                {
+                    result[index++] = _appointments[i];
+                }
+            }
+            return result;
+        }
+
         public void DisplayAppointment(Appointment apt)
         {
             var patient = _patients.FindById(apt.PatientId);
@@ -265,7 +334,7 @@ namespace ClinicApp.Managers
             var doctor = _doctors.FindById(apt.DoctorId);
             string doctorName = (doctor != null) ? doctor.FullName : $"Лікар #{apt.DoctorId}";
 
-            string line = $"[{apt.Id}] {apt.ScheduledAt:yyyy-MM-dd HH:mm}–{apt.EndsAt:HH:mm} | {patientName} -> {doctorName} | Статус: {apt.Status}";
+            string line = $"[{apt.Id}] {apt.GetDescription()} | {patientName} -> {doctorName} | {apt.ScheduledAt:yyyy-MM-dd HH:mm}–{apt.EndsAt:HH:mm} | Статус: {apt.Status} | {apt.GetCost():F2} грн";
             if (apt.Notes.Length > 0)
             {
                 line += $" | Примітка: {apt.Notes}";

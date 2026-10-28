@@ -23,7 +23,6 @@ try
     clinic.Doctors.Add(new Doctor("Наталія", "Шевченко", Speciality.Pediatrics, "DOC-20394", "0673344556") { Schedule = new WorkSchedule(9, 18) });
     clinic.Doctors.Add(new Doctor("Сергій", "Бондар", Speciality.Neurology, "DOC-44812", "0671122334") { Schedule = new WorkSchedule(12, 20) });
 
-    // 1. ВСТАВИТИ ТУТ: Використання нових методів для створення різних типів прийомів
     clinic.Appointments.Book(1, 1, DateTime.Today.AddHours(10), 30);
     clinic.Appointments.BookUrgent(2, 2, DateTime.Today.AddHours(14), "біль у грудях", 30);
     clinic.Appointments.BookSpecialist(3, 1, DateTime.Today.AddDays(1).AddHours(11), "кардіологія", 45);
@@ -35,7 +34,7 @@ catch (Exception ex)
     Console.WriteLine($"Помилка ініціалізації: {ex.Message}");
 }
 
-// 2. ВСТАВИТИ ТУТ: Демонстрація new проти override (Задача 3) з відповідями на запитання
+// Демонстрація new проти override (Задача 3)
 Console.WriteLine("\n== new vs override ==");
 UrgentAppointment urgentObj = new UrgentAppointment(1, 1, DateTime.Today.AddDays(2), "тест");
 Appointment apptRef = urgentObj;
@@ -641,6 +640,7 @@ static void RunAppointmentsMenu(Clinic clinic)
         Console.WriteLine("5. Знайти записи пацієнта");
         Console.WriteLine("6. Знайти записи за датою");
         Console.WriteLine("8. Скасувати всі записи пацієнта");
+        Console.WriteLine("9. За типом прийому"); // Додано пункт 9 для Задачі 4
         Console.WriteLine("0. Назад");
         Console.Write("Оберіть дію: ");
 
@@ -654,6 +654,13 @@ static void RunAppointmentsMenu(Clinic clinic)
             case "2":
                 try
                 {
+                    Console.WriteLine("\nОберіть тип запису:");
+                    Console.WriteLine("1. Звичайний прийом");
+                    Console.WriteLine("2. Терміновий прийом");
+                    Console.WriteLine("3. Консультація спеціаліста");
+                    Console.Write("Вибір типу: ");
+                    string? typeChoice = Console.ReadLine();
+
                     Console.WriteLine("\nДоступні пацієнти:");
                     clinic.Patients.DisplayAll();
 
@@ -669,12 +676,34 @@ static void RunAppointmentsMenu(Clinic clinic)
                     Console.Write("Введіть дату та час (рррр-мм-дд ГГ:хх, напр. 2026-10-15 14:00): ");
                     DateTime dt = DateTime.Parse(Console.ReadLine()!);
 
-                    Console.Write("Тривалість у хвилинах (за замовчуванням 30): ");
-                    string? durInput = Console.ReadLine();
-                    int duration = int.TryParse(durInput, out int dur) ? dur : 30;
+                    if (typeChoice == "2")
+                    {
+                        Console.Write("Введіть причину терміновості: ");
+                        string urgencyNote = Console.ReadLine() ?? string.Empty;
+                        Console.Write("Тривалість у хвилинах (за замовчуванням 30): ");
+                        string? durInput = Console.ReadLine();
+                        int duration = int.TryParse(durInput, out int dur) ? dur : 30;
 
-                    clinic.Appointments.Book(patientId, doctorId, dt, duration);
-                    Console.WriteLine("Запис успішно створено!");
+                        clinic.Appointments.BookUrgent(patientId, doctorId, dt, urgencyNote, duration);
+                    }
+                    else if (typeChoice == "3")
+                    {
+                        Console.Write("Введіть тему консультації: ");
+                        string topic = Console.ReadLine() ?? string.Empty;
+                        Console.Write("Тривалість у хвилинах (за замовчуванням 45): ");
+                        string? durInput = Console.ReadLine();
+                        int duration = int.TryParse(durInput, out int dur) ? dur : 45;
+
+                        clinic.Appointments.BookSpecialist(patientId, doctorId, dt, topic, duration);
+                    }
+                    else
+                    {
+                        Console.Write("Тривалість у хвилинах (за замовчуванням 30): ");
+                        string? durInput = Console.ReadLine();
+                        int duration = int.TryParse(durInput, out int dur) ? dur : 30;
+
+                        clinic.Appointments.Book(patientId, doctorId, dt, duration);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -721,6 +750,23 @@ static void RunAppointmentsMenu(Clinic clinic)
                     int cancelledCount = AppointmentManager.CancelAll(cancellables, reason);
                     Console.WriteLine($"Скасовано записів: {cancelledCount}");
                 }
+                break;
+            case "9": // Опрацювання пункту меню для Задачі 4
+                Console.WriteLine("1. Термінові");
+                Console.WriteLine("2. Консультації спеціаліста");
+                Console.WriteLine("3. Звичайні");
+                Console.Write("Оберіть тип: ");
+                string? typeChoiceMenu = Console.ReadLine();
+
+                Appointment[] filtered = typeChoiceMenu switch
+                {
+                    "1" => clinic.Appointments.GetUrgent(),
+                    "2" => clinic.Appointments.GetSpecialist(),
+                    "3" => clinic.Appointments.GetRegular(),
+                    _ => new Appointment[0]
+                };
+
+                clinic.Appointments.DisplayList(filtered);
                 break;
             case "0":
                 exit = true;
