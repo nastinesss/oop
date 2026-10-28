@@ -70,7 +70,7 @@ namespace ClinicApp.Managers
             return cancelledCount;
         }
 
-        public bool Book(int patientId, int doctorId, DateTime scheduledAt, int durationMinutes = 30)
+        private bool AddAppointmentInternal(Appointment appointment, string successMessage)
         {
             if (_count >= MaxAppointments)
             {
@@ -78,26 +78,44 @@ namespace ClinicApp.Managers
                 return false;
             }
 
-            var patient = _patients.FindById(patientId);
+            var patient = _patients.FindById(appointment.PatientId);
             if (patient == null)
             {
-                Console.WriteLine($"Помилка: пацієнта з ID {patientId} не існує.");
+                Console.WriteLine($"Помилка: пацієнта з ID {appointment.PatientId} не існує.");
                 return false;
             }
 
-            var doctor = _doctors.FindById(doctorId);
+            var doctor = _doctors.FindById(appointment.DoctorId);
             if (doctor == null)
             {
-                Console.WriteLine($"Помилка: лікаря з ID {doctorId} не існує.");
+                Console.WriteLine($"Помилка: лікаря з ID {appointment.DoctorId} не існує.");
                 return false;
             }
 
-            var apt = new Appointment(patientId, doctorId, scheduledAt, durationMinutes);
-            _appointments[_count] = apt;
+            _appointments[_count] = appointment;
+            _appointments[_count].Id = _count + 1;
             _count++;
 
-            Console.WriteLine($"Успішно створено запис №{apt.Id} для {patient.FullName} до лікаря {doctor.FullName}.");
+            Console.WriteLine(successMessage);
             return true;
+        }
+
+        public bool Book(int patientId, int doctorId, DateTime scheduledAt, int durationMinutes = 30)
+        {
+            var appointment = new RegularAppointment(patientId, doctorId, scheduledAt, durationMinutes);
+            return AddAppointmentInternal(appointment, $"Успішно створено звичайний запис №{appointment.Id}.");
+        }
+
+        public bool BookUrgent(int patientId, int doctorId, DateTime scheduledAt, string urgencyNote = "", int durationMinutes = 30)
+        {
+            var appointment = new UrgentAppointment(patientId, doctorId, scheduledAt, urgencyNote, durationMinutes);
+            return AddAppointmentInternal(appointment, $"Успішно створено терміновий запис №{appointment.Id}.");
+        }
+
+        public bool BookSpecialist(int patientId, int doctorId, DateTime scheduledAt, string topic = "", int durationMinutes = 45)
+        {
+            var appointment = new SpecialistAppointment(patientId, doctorId, scheduledAt, topic, durationMinutes);
+            return AddAppointmentInternal(appointment, $"Успішно створено запис до спеціаліста №{appointment.Id}.");
         }
 
         public bool Cancel(int id, string reason = "")
@@ -239,6 +257,75 @@ namespace ClinicApp.Managers
             return result;
         }
 
+        public Appointment[] GetUrgent()
+        {
+            int matchCount = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is UrgentAppointment)
+                {
+                    matchCount++;
+                }
+            }
+
+            var result = new Appointment[matchCount];
+            int index = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is UrgentAppointment)
+                {
+                    result[index++] = _appointments[i];
+                }
+            }
+            return result;
+        }
+
+        public Appointment[] GetSpecialist()
+        {
+            int matchCount = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is SpecialistAppointment)
+                {
+                    matchCount++;
+                }
+            }
+
+            var result = new Appointment[matchCount];
+            int index = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is SpecialistAppointment)
+                {
+                    result[index++] = _appointments[i];
+                }
+            }
+            return result;
+        }
+
+        public Appointment[] GetRegular()
+        {
+            int matchCount = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is RegularAppointment)
+                {
+                    matchCount++;
+                }
+            }
+
+            var result = new Appointment[matchCount];
+            int index = 0;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_appointments[i] is RegularAppointment)
+                {
+                    result[index++] = _appointments[i];
+                }
+            }
+            return result;
+        }
+
         public void DisplayAppointment(Appointment apt)
         {
             var patient = _patients.FindById(apt.PatientId);
@@ -247,7 +334,7 @@ namespace ClinicApp.Managers
             var doctor = _doctors.FindById(apt.DoctorId);
             string doctorName = (doctor != null) ? doctor.FullName : $"Лікар #{apt.DoctorId}";
 
-            string line = $"[{apt.Id}] {apt.ScheduledAt:yyyy-MM-dd HH:mm}–{apt.EndsAt:HH:mm} | {patientName} -> {doctorName} | Статус: {apt.Status}";
+            string line = $"[{apt.Id}] {apt.GetDescription()} | {patientName} -> {doctorName} | {apt.ScheduledAt:yyyy-MM-dd HH:mm}–{apt.EndsAt:HH:mm} | Статус: {apt.Status} | {apt.GetCost():F2} грн";
             if (apt.Notes.Length > 0)
             {
                 line += $" | Примітка: {apt.Notes}";

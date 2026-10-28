@@ -24,8 +24,15 @@ try
     clinic.Doctors.Add(new Doctor("Сергій", "Бондар", Speciality.Neurology, "DOC-44812", "0671122334") { Schedule = new WorkSchedule(12, 20) });
 
     clinic.Appointments.Book(1, 1, DateTime.Today.AddHours(10), 30);
-    clinic.Appointments.Book(2, 2, DateTime.Today.AddHours(14), 45);
-    clinic.Appointments.Book(3, 1, DateTime.Today.AddDays(1).AddHours(11), 30);
+    clinic.Appointments.BookUrgent(2, 2, DateTime.Today.AddHours(14), "біль у грудях", 30);
+    clinic.Appointments.BookSpecialist(3, 1, DateTime.Today.AddDays(1).AddHours(11), "кардіологія", 45);
+
+    // Демонстрація створення VIP-запису зі знижкою 20% (Задача 5)
+    var vipAppointment = new UrgentAppointment(1, 2, DateTime.Today.AddHours(16), "гострий біль VIP", 30)
+    {
+        DiscountMultiplier = 0.8m
+    };
+    Console.WriteLine($"\n[Task 05] VIP Терміновий прийом (знижка 20%): вартість = {vipAppointment.GetCost():F2} грн (очікувано 360.00 грн)");
 
     SeedMedicalRecords(clinic);
 }
@@ -33,6 +40,23 @@ catch (Exception ex)
 {
     Console.WriteLine($"Помилка ініціалізації: {ex.Message}");
 }
+
+// Демонстрація new проти override (Задача 3)
+Console.WriteLine("\n== new vs override ==");
+UrgentAppointment urgentObj = new UrgentAppointment(1, 1, DateTime.Today.AddDays(2), "тест");
+Appointment apptRef = urgentObj;
+
+Console.WriteLine($"Через Appointment:       {apptRef.GetDescription()} | пріоритет {apptRef.GetPriority()}");
+Console.WriteLine($"Через UrgentAppointment: {urgentObj.GetDescription()} | пріоритет {urgentObj.GetPriority()}");
+/*
+Відповіді на запитання:
+1. Чому GetDescription() через змінну типу Appointment дає опис термінового прийому?
+   - Тому що метод GetDescription() є віртуальним (virtual у базовому класі та override у підкласі), тому виклик розв'язується динамічно за реальним типом об'єкта в пам'яті (runtime dispatch).
+2. Чому GetPriority() через ту саму змінну повертає 3, хоча об'єкт — UrgentAppointment?
+   - Тому що метод GetPriority() у базовому класі не є віртуальним, а в підкласі він оголошений з модифікатором new (приховування). Виклик зв'язується статично за типом змінної (Appointment).
+3. Що треба змінити в Appointment і UrgentAppointment, щоб GetPriority() теж працював поліморфно?
+   - Потрібно в базовому класі Appointment позначити GetPriority() як virtual, а в підкласі UrgentAppointment замінити new на override.
+*/
 
 bool appRunning = true;
 while (appRunning)
@@ -484,7 +508,7 @@ static void RunDoctorsMenu(Clinic clinic)
         Console.WriteLine("2. Додати лікаря");
         Console.WriteLine("3. Знайти за спеціальністю");
         Console.WriteLine("4. Видалити лікаря за ID");
-        Console.WriteLine("5. Вільні години лікаря"); 
+        Console.WriteLine("5. Вільні години лікаря");
         Console.WriteLine("6. Статистика");
         Console.WriteLine("0. Назад");
         Console.Write("Оберіть дію: ");
@@ -555,7 +579,7 @@ static void RunDoctorsMenu(Clinic clinic)
                 Console.Write("Введіть ID лікаря: ");
                 if (int.TryParse(Console.ReadLine(), out int deleteId)) clinic.Doctors.Remove(deleteId);
                 break;
-            case "5": 
+            case "5":
                 Console.Write("ID лікаря (ціле): ");
                 if (int.TryParse(Console.ReadLine(), out int docId))
                 {
@@ -622,7 +646,8 @@ static void RunAppointmentsMenu(Clinic clinic)
         Console.WriteLine("4. Завершити запис");
         Console.WriteLine("5. Знайти записи пацієнта");
         Console.WriteLine("6. Знайти записи за датою");
-        Console.WriteLine("8. Скасувати всі записи пацієнта"); 
+        Console.WriteLine("8. Скасувати всі записи пацієнта");
+        Console.WriteLine("9. За типом прийому");
         Console.WriteLine("0. Назад");
         Console.Write("Оберіть дію: ");
 
@@ -636,6 +661,13 @@ static void RunAppointmentsMenu(Clinic clinic)
             case "2":
                 try
                 {
+                    Console.WriteLine("\nОберіть тип запису:");
+                    Console.WriteLine("1. Звичайний прийом");
+                    Console.WriteLine("2. Терміновий прийом");
+                    Console.WriteLine("3. Консультація спеціаліста");
+                    Console.Write("Вибір типу: ");
+                    string? typeChoice = Console.ReadLine();
+
                     Console.WriteLine("\nДоступні пацієнти:");
                     clinic.Patients.DisplayAll();
 
@@ -651,12 +683,34 @@ static void RunAppointmentsMenu(Clinic clinic)
                     Console.Write("Введіть дату та час (рррр-мм-дд ГГ:хх, напр. 2026-10-15 14:00): ");
                     DateTime dt = DateTime.Parse(Console.ReadLine()!);
 
-                    Console.Write("Тривалість у хвилинах (за замовчуванням 30): ");
-                    string? durInput = Console.ReadLine();
-                    int duration = int.TryParse(durInput, out int dur) ? dur : 30;
+                    if (typeChoice == "2")
+                    {
+                        Console.Write("Введіть причину терміновості: ");
+                        string urgencyNote = Console.ReadLine() ?? string.Empty;
+                        Console.Write("Тривалість у хвилинах (за замовчуванням 30): ");
+                        string? durInput = Console.ReadLine();
+                        int duration = int.TryParse(durInput, out int dur) ? dur : 30;
 
-                    clinic.Appointments.Book(patientId, doctorId, dt, duration);
-                    Console.WriteLine("Запис успішно створено!");
+                        clinic.Appointments.BookUrgent(patientId, doctorId, dt, urgencyNote, duration);
+                    }
+                    else if (typeChoice == "3")
+                    {
+                        Console.Write("Введіть тему консультації: ");
+                        string topic = Console.ReadLine() ?? string.Empty;
+                        Console.Write("Тривалість у хвилинах (за замовчуванням 45): ");
+                        string? durInput = Console.ReadLine();
+                        int duration = int.TryParse(durInput, out int dur) ? dur : 45;
+
+                        clinic.Appointments.BookSpecialist(patientId, doctorId, dt, topic, duration);
+                    }
+                    else
+                    {
+                        Console.Write("Тривалість у хвилинах (за замовчуванням 30): ");
+                        string? durInput = Console.ReadLine();
+                        int duration = int.TryParse(durInput, out int dur) ? dur : 30;
+
+                        clinic.Appointments.Book(patientId, doctorId, dt, duration);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -692,7 +746,7 @@ static void RunAppointmentsMenu(Clinic clinic)
                     clinic.Appointments.DisplayList(clinic.Appointments.GetByDate(searchDate));
                 }
                 break;
-            case "8": 
+            case "8":
                 Console.Write("ID пацієнта (ціле): ");
                 if (int.TryParse(Console.ReadLine(), out int pId))
                 {
@@ -703,6 +757,23 @@ static void RunAppointmentsMenu(Clinic clinic)
                     int cancelledCount = AppointmentManager.CancelAll(cancellables, reason);
                     Console.WriteLine($"Скасовано записів: {cancelledCount}");
                 }
+                break;
+            case "9":
+                Console.WriteLine("1. Термінові");
+                Console.WriteLine("2. Консультації спеціаліста");
+                Console.WriteLine("3. Звичайні");
+                Console.Write("Оберіть тип: ");
+                string? typeChoiceMenu = Console.ReadLine();
+
+                Appointment[] filtered = typeChoiceMenu switch
+                {
+                    "1" => clinic.Appointments.GetUrgent(),
+                    "2" => clinic.Appointments.GetSpecialist(),
+                    "3" => clinic.Appointments.GetRegular(),
+                    _ => new Appointment[0]
+                };
+
+                clinic.Appointments.DisplayList(filtered);
                 break;
             case "0":
                 exit = true;
