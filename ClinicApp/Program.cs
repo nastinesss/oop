@@ -23,9 +23,10 @@ try
     clinic.Doctors.Add(new Doctor("Наталія", "Шевченко", Speciality.Pediatrics, "DOC-20394", "0673344556") { Schedule = new WorkSchedule(9, 18) });
     clinic.Doctors.Add(new Doctor("Сергій", "Бондар", Speciality.Neurology, "DOC-44812", "0671122334") { Schedule = new WorkSchedule(12, 20) });
 
+    // 1. ВСТАВИТИ ТУТ: Використання нових методів для створення різних типів прийомів
     clinic.Appointments.Book(1, 1, DateTime.Today.AddHours(10), 30);
-    clinic.Appointments.Book(2, 2, DateTime.Today.AddHours(14), 45);
-    clinic.Appointments.Book(3, 1, DateTime.Today.AddDays(1).AddHours(11), 30);
+    clinic.Appointments.BookUrgent(2, 2, DateTime.Today.AddHours(14), "біль у грудях", 30);
+    clinic.Appointments.BookSpecialist(3, 1, DateTime.Today.AddDays(1).AddHours(11), "кардіологія", 45);
 
     SeedMedicalRecords(clinic);
 }
@@ -33,6 +34,23 @@ catch (Exception ex)
 {
     Console.WriteLine($"Помилка ініціалізації: {ex.Message}");
 }
+
+// 2. ВСТАВИТИ ТУТ: Демонстрація new проти override (Задача 3) з відповідями на запитання
+Console.WriteLine("\n== new vs override ==");
+UrgentAppointment urgentObj = new UrgentAppointment(1, 1, DateTime.Today.AddDays(2), "тест");
+Appointment apptRef = urgentObj;
+
+Console.WriteLine($"Через Appointment:       {apptRef.GetDescription()} | пріоритет {apptRef.GetPriority()}");
+Console.WriteLine($"Через UrgentAppointment: {urgentObj.GetDescription()} | пріоритет {urgentObj.GetPriority()}");
+/*
+Відповіді на запитання:
+1. Чому GetDescription() через змінну типу Appointment дає опис термінового прийому?
+   - Тому що метод GetDescription() є віртуальним (virtual у базовому класі та override у підкласі), тому виклик розв'язується динамічно за реальним типом об'єкта в пам'яті (runtime dispatch).
+2. Чому GetPriority() через ту саму змінну повертає 3, хоча об'єкт — UrgentAppointment?
+   - Тому що метод GetPriority() у базовому класі не є віртуальним, а в підкласі він оголошений з модифікатором new (приховування). Виклик зв'язується статично за типом змінної (Appointment).
+3. Що треба змінити в Appointment і UrgentAppointment, щоб GetPriority() теж працював поліморфно?
+   - Потрібно в базовому класі Appointment позначити GetPriority() як virtual, а в підкласі UrgentAppointment замінити new на override.
+*/
 
 bool appRunning = true;
 while (appRunning)
@@ -484,7 +502,7 @@ static void RunDoctorsMenu(Clinic clinic)
         Console.WriteLine("2. Додати лікаря");
         Console.WriteLine("3. Знайти за спеціальністю");
         Console.WriteLine("4. Видалити лікаря за ID");
-        Console.WriteLine("5. Вільні години лікаря"); 
+        Console.WriteLine("5. Вільні години лікаря");
         Console.WriteLine("6. Статистика");
         Console.WriteLine("0. Назад");
         Console.Write("Оберіть дію: ");
@@ -555,7 +573,7 @@ static void RunDoctorsMenu(Clinic clinic)
                 Console.Write("Введіть ID лікаря: ");
                 if (int.TryParse(Console.ReadLine(), out int deleteId)) clinic.Doctors.Remove(deleteId);
                 break;
-            case "5": 
+            case "5":
                 Console.Write("ID лікаря (ціле): ");
                 if (int.TryParse(Console.ReadLine(), out int docId))
                 {
@@ -622,7 +640,7 @@ static void RunAppointmentsMenu(Clinic clinic)
         Console.WriteLine("4. Завершити запис");
         Console.WriteLine("5. Знайти записи пацієнта");
         Console.WriteLine("6. Знайти записи за датою");
-        Console.WriteLine("8. Скасувати всі записи пацієнта"); 
+        Console.WriteLine("8. Скасувати всі записи пацієнта");
         Console.WriteLine("0. Назад");
         Console.Write("Оберіть дію: ");
 
@@ -692,7 +710,7 @@ static void RunAppointmentsMenu(Clinic clinic)
                     clinic.Appointments.DisplayList(clinic.Appointments.GetByDate(searchDate));
                 }
                 break;
-            case "8": 
+            case "8":
                 Console.Write("ID пацієнта (ціле): ");
                 if (int.TryParse(Console.ReadLine(), out int pId))
                 {
