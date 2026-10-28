@@ -27,6 +27,13 @@ try
     clinic.Appointments.BookUrgent(2, 2, DateTime.Today.AddHours(14), "біль у грудях", 30);
     clinic.Appointments.BookSpecialist(3, 1, DateTime.Today.AddDays(1).AddHours(11), "кардіологія", 45);
 
+    // Демонстрація створення VIP-запису зі знижкою 20% (Задача 5)
+    var vipAppointment = new UrgentAppointment(1, 2, DateTime.Today.AddHours(16), "гострий біль VIP", 30)
+    {
+        DiscountMultiplier = 0.8m
+    };
+    Console.WriteLine($"\n[Task 05] VIP Терміновий прийом (знижка 20%): вартість = {vipAppointment.GetCost():F2} грн (очікувано 360.00 грн)");
+
     SeedMedicalRecords(clinic);
 }
 catch (Exception ex)
@@ -640,7 +647,7 @@ static void RunAppointmentsMenu(Clinic clinic)
         Console.WriteLine("5. Знайти записи пацієнта");
         Console.WriteLine("6. Знайти записи за датою");
         Console.WriteLine("8. Скасувати всі записи пацієнта");
-        Console.WriteLine("9. За типом прийому"); // Додано пункт 9 для Задачі 4
+        Console.WriteLine("9. За типом прийому");
         Console.WriteLine("0. Назад");
         Console.Write("Оберіть дію: ");
 
@@ -751,7 +758,7 @@ static void RunAppointmentsMenu(Clinic clinic)
                     Console.WriteLine($"Скасовано записів: {cancelledCount}");
                 }
                 break;
-            case "9": // Опрацювання пункту меню для Задачі 4
+            case "9":
                 Console.WriteLine("1. Термінові");
                 Console.WriteLine("2. Консультації спеціаліста");
                 Console.WriteLine("3. Звичайні");

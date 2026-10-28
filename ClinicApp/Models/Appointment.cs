@@ -16,6 +16,13 @@ namespace ClinicApp.Models
         public bool IsCancelled { get; set; }
         public string CancellationReason { get; set; }
 
+        // Додано множник знижки (за замовчуванням 1.0 — без знижки)
+        public decimal DiscountMultiplier { get; set; } = 1.0m;
+
+        public DateTime EndsAt => ScheduledAt.AddMinutes(DurationMinutes);
+        public bool IsUpcoming => Status == AppointmentStatus.Scheduled && ScheduledAt > DateTime.Now;
+        public string Notes { get; set; } = string.Empty;
+
         public Appointment(int patientId, int doctorId, DateTime scheduledAt, int durationMinutes = 30)
         {
             PatientId = patientId;
@@ -26,11 +33,16 @@ namespace ClinicApp.Models
             IsPaid = false;
             IsCancelled = false;
             CancellationReason = string.Empty;
+            DiscountMultiplier = 1.0m;
         }
 
+        // Обрано Варіант А: множник знижки у базовому класі Appointment.
+        // Це дозволяє застосовувати знижку до будь-якого типу прийомів (звичайний, терміновий, спеціаліста) 
+        // без потреби створювати нові підкласи, що відповідає принципу Open/Closed (OCP).
         public virtual decimal GetCost()
         {
-            return DurationMinutes * 10m;
+            // Базова вартість із врахуванням знижкового множника
+            return DurationMinutes * 10m * DiscountMultiplier;
         }
 
         public virtual string GetDescription()
@@ -57,6 +69,16 @@ namespace ClinicApp.Models
             Status = AppointmentStatus.Cancelled;
             IsCancelled = true;
             CancellationReason = reason;
+            return true;
+        }
+
+        public bool Complete()
+        {
+            if (Status != AppointmentStatus.Scheduled)
+            {
+                return false;
+            }
+            Status = AppointmentStatus.Completed;
             return true;
         }
 

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ClinicApp.Managers
 {
-    internal class DoctorManager
+    public class DoctorManager
     {
         private const int MaxDoctors = 50;
         private readonly Doctor[] _doctors = new Doctor[MaxDoctors];
