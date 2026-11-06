@@ -3,7 +3,7 @@ using ClinicApp.Interfaces;
 
 namespace ClinicApp.Models
 {
-    public class Appointment : IPayable, ICancellable
+    public class Appointment : IPayable, ICancellable, IIdentifiable
     {
         public int Id { get; set; }
         public int PatientId { get; set; }
