@@ -46,16 +46,16 @@ Console.WriteLine("\n== new vs override ==");
 UrgentAppointment urgentObj = new UrgentAppointment(1, 1, DateTime.Today.AddDays(2), "тест");
 Appointment apptRef = urgentObj;
 
-Console.WriteLine($"Через Appointment:       {apptRef.GetDescription()} | пріоритет {apptRef.GetPriority()}");
+Console.WriteLine($"Через Appointment:        {apptRef.GetDescription()} | пріоритет {apptRef.GetPriority()}");
 Console.WriteLine($"Через UrgentAppointment: {urgentObj.GetDescription()} | пріоритет {urgentObj.GetPriority()}");
 /*
 Відповіді на запитання:
 1. Чому GetDescription() через змінну типу Appointment дає опис термінового прийому?
-   - Тому що метод GetDescription() є віртуальним (virtual у базовому класі та override у підкласі), тому виклик розв'язується динамічно за реальним типом об'єкта в пам'яті (runtime dispatch).
+    - Тому що метод GetDescription() є віртуальним (virtual у базовому класі та override у підкласі), тому виклик розв'язується динамічно за реальним типом об'єкта в пам'яті (runtime dispatch).
 2. Чому GetPriority() через ту саму змінну повертає 3, хоча об'єкт — UrgentAppointment?
-   - Тому що метод GetPriority() у базовому класі не є віртуальним, а в підкласі він оголошений з модифікатором new (приховування). Виклик зв'язується статично за типом змінної (Appointment).
+    - Тому що метод GetPriority() у базовому класі не є віртуальним, а в підкласі він оголошений з модифікатором new (приховування). Виклик зв'язується статично за типом змінної (Appointment).
 3. Що треба змінити в Appointment і UrgentAppointment, щоб GetPriority() теж працював поліморфно?
-   - Потрібно в базовому класі Appointment позначити GetPriority() як virtual, а в підкласі UrgentAppointment замінити new на override.
+    - Потрібно в базовому класі Appointment позначити GetPriority() як virtual, а в підкласі UrgentAppointment замінити new на override.
 */
 
 bool appRunning = true;
@@ -69,7 +69,8 @@ while (appRunning)
     Console.WriteLine("│ 3. Записи      — прийоми, скасування           │");
     Console.WriteLine("│ 4. Медична картка — діагнози, рецепти          │");
     Console.WriteLine("│ 5. Рахунки     — оплата, борги                 │");
-    Console.WriteLine("│ 6. Звіт        — загальна статистика           │");
+    Console.WriteLine("│ 6. Черга       — очікування, прийом            │");
+    Console.WriteLine("│ 7. Звіт        — загальна статистика           │");
     Console.WriteLine("│ 0. Вийти                                       │");
     Console.WriteLine("└────────────────────────────────────────────────┘");
     Console.Write("Оберіть розділ: ");
@@ -93,6 +94,9 @@ while (appRunning)
             RunBillingMenu(clinic);
             break;
         case "6":
+            WaitingRoomMenu(clinic);
+            break;
+        case "7":
             clinic.GenerateReport();
             break;
         case "0":
@@ -101,6 +105,90 @@ while (appRunning)
         default:
             Console.WriteLine("Невірний вибір.");
             break;
+    }
+}
+
+static void WaitingRoomMenu(Clinic clinic)
+{
+    while (true)
+    {
+        Console.WriteLine("\n── Черга ───────────────────────");
+        Console.WriteLine("  1. Додати пацієнта до черги");
+        Console.WriteLine("  2. Прийняти першого");
+        Console.WriteLine("  3. Хто перший?");
+        Console.WriteLine("  4. Переглянути всю чергу");
+        Console.WriteLine("  0. Назад");
+        Console.Write("Оберіть: ");
+
+        string? choice = Console.ReadLine();
+        Console.WriteLine();
+
+        switch (choice)
+        {
+            case "1":
+                Console.Write("Введіть ID пацієнта: ");
+                if (int.TryParse(Console.ReadLine(), out int id))
+                {
+                    var patient = clinic.Patients.FindById(id);
+                    if (patient != null)
+                    {
+                        clinic.WaitingRoom.Enqueue(patient);
+                        Console.WriteLine($"Пацієнта {patient.FullName} додано до черги.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Пацієнта не знайдено.");
+                    }
+                }
+                break;
+
+            case "2":
+                try
+                {
+                    var accepted = clinic.WaitingRoom.Dequeue();
+                    Console.WriteLine($"Прийнято: {accepted.FullName}. У черзі лишилось: {clinic.WaitingRoom.Count}");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine($"Помилка: {ex.Message}");
+                }
+                break;
+
+            case "3":
+                try
+                {
+                    var next = clinic.WaitingRoom.Peek();
+                    Console.WriteLine($"Перший у черзі: {next.FullName}");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine($"Помилка: {ex.Message}");
+                }
+                break;
+
+            case "4":
+                var allInQueue = clinic.WaitingRoom.ToArray();
+                if (allInQueue.Length == 0)
+                {
+                    Console.WriteLine("Черга порожня.");
+                }
+                else
+                {
+                    Console.WriteLine("Поточна черга очікування:");
+                    for (int i = 0; i < allInQueue.Length; i++)
+                    {
+                        Console.WriteLine($"  {i + 1}. {allInQueue[i].FullName} (ID: {allInQueue[i].Id})");
+                    }
+                }
+                break;
+
+            case "0":
+                return;
+
+            default:
+                Console.WriteLine("Невірний вибір.");
+                break;
+        }
     }
 }
 

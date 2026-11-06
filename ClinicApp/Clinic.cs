@@ -1,4 +1,5 @@
 ﻿using ClinicApp.Managers;
+using ClinicApp.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,6 +16,8 @@ namespace ClinicApp
         public MedicalRecordManager MedicalRecords { get; }
 
         public BillingManager Billing { get; }
+
+        public WaitingQueue<Patient> WaitingRoom { get; } = new WaitingQueue<Patient>();
 
         public Clinic(string name)
         {
