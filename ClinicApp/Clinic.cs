@@ -16,6 +16,7 @@ namespace ClinicApp
         public MedicalRecordManager MedicalRecords { get; }
 
         public BillingManager Billing { get; }
+        public AnalyticsManager Analytics { get; }
 
         public WaitingQueue<Patient> WaitingRoom { get; } = new WaitingQueue<Patient>();
 
@@ -28,6 +29,7 @@ namespace ClinicApp
             MedicalRecords = new MedicalRecordManager();
 
             Billing = new BillingManager(Appointments);
+            Analytics = new AnalyticsManager(Appointments, Doctors, Patients);
         }
 
         public void DisplaySchedule(DateTime date)
