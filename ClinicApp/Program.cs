@@ -5,6 +5,7 @@ using ClinicApp.Enums;
 using ClinicApp.Models;
 using ClinicApp.Managers;
 using ClinicApp.Interfaces;
+using ClinicApp.Comparators;
 
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
@@ -46,7 +47,7 @@ Console.WriteLine("\n== new vs override ==");
 UrgentAppointment urgentObj = new UrgentAppointment(1, 1, DateTime.Today.AddDays(2), "тест");
 Appointment apptRef = urgentObj;
 
-Console.WriteLine($"Через Appointment:        {apptRef.GetDescription()} | пріоритет {apptRef.GetPriority()}");
+Console.WriteLine($"Через Appointment:         {apptRef.GetDescription()} | пріоритет {apptRef.GetPriority()}");
 Console.WriteLine($"Через UrgentAppointment: {urgentObj.GetDescription()} | пріоритет {urgentObj.GetPriority()}");
 /*
 Відповіді на запитання:
@@ -62,7 +63,7 @@ bool appRunning = true;
 while (appRunning)
 {
     Console.WriteLine("\n┌────────────────────────────────────────────────┐");
-    Console.WriteLine("│                МЕДИЧНА КЛІНІКА                 │");
+    Console.WriteLine("│                    МЕДИЧНА КЛІНІКА             │");
     Console.WriteLine("├────────────────────────────────────────────────┤");
     Console.WriteLine("│ 1. Пацієнти    — реєстрація, пошук             │");
     Console.WriteLine("│ 2. Лікарі      — персонал, розклад             │");
@@ -71,6 +72,7 @@ while (appRunning)
     Console.WriteLine("│ 5. Рахунки     — оплата, борги                 │");
     Console.WriteLine("│ 6. Черга       — очікування, прийом            │");
     Console.WriteLine("│ 7. Звіт        — загальна статистика           │");
+    Console.WriteLine("│ 8. Аналітика   — статистика і сортування       │");
     Console.WriteLine("│ 0. Вийти                                       │");
     Console.WriteLine("└────────────────────────────────────────────────┘");
     Console.Write("Оберіть розділ: ");
@@ -99,6 +101,9 @@ while (appRunning)
         case "7":
             clinic.GenerateReport();
             break;
+        case "8":
+            AnalyticsMenu(clinic);
+            break;
         case "0":
             appRunning = false;
             break;
@@ -106,6 +111,86 @@ while (appRunning)
             Console.WriteLine("Невірний вибір.");
             break;
     }
+}
+
+static void AnalyticsMenu(Clinic clinic)
+{
+    while (true)
+    {
+        Console.WriteLine("\n── Аналітика ───────────────────");
+        Console.WriteLine("  1. Лікарі за навантаженням");
+        Console.WriteLine("  2. Лікарі за виручкою");
+        Console.WriteLine("  3. Лікарі за іменем");
+        Console.WriteLine("  4. Пацієнти за кількістю візитів");
+        Console.WriteLine("  5. Пацієнти за витратами");
+        Console.WriteLine("  0. Назад");
+        Console.Write("Оберіть: ");
+
+        string? choice = Console.ReadLine();
+        if (choice == "0") break;
+
+        switch (choice)
+        {
+            case "1":
+                {
+                    var list = CollectDoctorStats(clinic);
+                    list.Sort(); // Природний порядок (IComparable)
+                    foreach (var item in list) Console.WriteLine(item);
+                    break;
+                }
+            case "2":
+                {
+                    var list = CollectDoctorStats(clinic);
+                    list.Sort(new DoctorStatsByRevenue());
+                    foreach (var item in list) Console.WriteLine(item);
+                    break;
+                }
+            case "3":
+                {
+                    var list = CollectDoctorStats(clinic);
+                    list.Sort(new DoctorStatsByName());
+                    foreach (var item in list) Console.WriteLine(item);
+                    break;
+                }
+            case "4":
+                {
+                    var list = CollectPatientStats(clinic);
+                    list.Sort(); // Природний порядок (IComparable)
+                    foreach (var item in list) Console.WriteLine(item);
+                    break;
+                }
+            case "5":
+                {
+                    var list = CollectPatientStats(clinic);
+                    list.Sort(new PatientStatsBySpent());
+                    foreach (var item in list) Console.WriteLine(item);
+                    break;
+                }
+            default:
+                Console.WriteLine("Невірний вибір.");
+                break;
+        }
+    }
+}
+
+static List<DoctorStats> CollectDoctorStats(Clinic clinic)
+{
+    var list = new List<DoctorStats>();
+    foreach (var stats in clinic.Analytics.ComputeDoctorStats())
+    {
+        list.Add(stats);
+    }
+    return list;
+}
+
+static List<PatientStats> CollectPatientStats(Clinic clinic)
+{
+    var list = new List<PatientStats>();
+    foreach (var stats in clinic.Analytics.ComputePatientStats())
+    {
+        list.Add(stats);
+    }
+    return list;
 }
 
 static void WaitingRoomMenu(Clinic clinic)
@@ -833,35 +918,6 @@ static void RunAppointmentsMenu(Clinic clinic)
                 {
                     clinic.Appointments.DisplayList(clinic.Appointments.GetByDate(searchDate));
                 }
-                break;
-            case "8":
-                Console.Write("ID пацієнта (ціле): ");
-                if (int.TryParse(Console.ReadLine(), out int pId))
-                {
-                    Console.Write("Причина скасування (Enter — без причини): ");
-                    string reason = Console.ReadLine() ?? string.Empty;
-                    var patientApts = clinic.Appointments.GetByPatient(pId);
-                    ICancellable[] cancellables = patientApts;
-                    int cancelledCount = AppointmentManager.CancelAll(cancellables, reason);
-                    Console.WriteLine($"Скасовано записів: {cancelledCount}");
-                }
-                break;
-            case "9":
-                Console.WriteLine("1. Термінові");
-                Console.WriteLine("2. Консультації спеціаліста");
-                Console.WriteLine("3. Звичайні");
-                Console.Write("Оберіть тип: ");
-                string? typeChoiceMenu = Console.ReadLine();
-
-                Appointment[] filtered = typeChoiceMenu switch
-                {
-                    "1" => clinic.Appointments.GetUrgent(),
-                    "2" => clinic.Appointments.GetSpecialist(),
-                    "3" => clinic.Appointments.GetRegular(),
-                    _ => new Appointment[0]
-                };
-
-                clinic.Appointments.DisplayList(filtered);
                 break;
             case "0":
                 exit = true;
