@@ -1,5 +1,6 @@
 ﻿using ClinicApp.Managers;
 using ClinicApp.Models;
+using ClinicApp.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -19,6 +20,7 @@ namespace ClinicApp
         public AnalyticsManager Analytics { get; }
 
         public TreatmentPlanManager TreatmentPlans { get; }
+        public ClinicLogger Logger { get; }
 
         public WaitingQueue<Patient> WaitingRoom { get; } = new WaitingQueue<Patient>();
 
@@ -33,6 +35,7 @@ namespace ClinicApp
             Billing = new BillingManager(Appointments);
             Analytics = new AnalyticsManager(Appointments, Doctors, Patients);
             TreatmentPlans = new TreatmentPlanManager();
+            Logger = new ClinicLogger();
         }
 
         public void DisplaySchedule(DateTime date)
