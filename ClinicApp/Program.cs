@@ -61,7 +61,36 @@ Console.WriteLine($"Через UrgentAppointment: {urgentObj.GetDescription()} |
 3. Що треба змінити в Appointment і UrgentAppointment, щоб GetPriority() теж працював поліморфно?
     - Потрібно в базовому класі Appointment позначити GetPriority() як virtual, а в підкласі UrgentAppointment замінити new на override.
 */
+if (clinic.Session.Exists())
+{
+    Console.Write(
+        "Знайдено збережену сесію. Завантажити? (y/n): ");
 
+    string answer = (Console.ReadLine() ?? "").Trim();
+
+    if (string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase))
+    {
+        try
+        {
+            int loaded = clinic.Session.Load(clinic);
+
+            Console.WriteLine($"Завантажено {loaded} пацієнтів.");
+
+            clinic.Logger.LogInfo(
+                $"Завантажено сесію: додано {loaded} пацієнтів.");
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine(
+                $"Не вдалося завантажити сесію: {ex.Message}");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine(
+                $"Немає доступу до файлу сесії: {ex.Message}");
+        }
+    }
+}
 bool appRunning = true;
 while (appRunning)
 {
@@ -116,8 +145,39 @@ while (appRunning)
             RunFilesMenu(clinic);
             break;
         case "0":
-            appRunning = false;
-            break;
+            {
+                Console.Write("Зберегти сесію? (y/n): ");
+
+                string answer = (Console.ReadLine() ?? "").Trim();
+
+                if (string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        clinic.Session.Save(clinic);
+
+                        Console.WriteLine("Сесію збережено.");
+                        clinic.Logger.LogInfo("Сесію збережено.");
+                    }
+                    catch (IOException ex)
+                    {
+                        Console.WriteLine(
+                            $"Не вдалося зберегти сесію: {ex.Message}");
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        Console.WriteLine(
+                            $"Немає доступу до файлу сесії: {ex.Message}");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+
+                appRunning = false;
+                break;
+            }
         default:
             Console.WriteLine("Невірний вибір.");
             break;
