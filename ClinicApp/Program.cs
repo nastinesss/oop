@@ -347,6 +347,7 @@ static void RunFilesMenu(Clinic clinic)
         Console.WriteLine("\n── Файли ─────────────────────────");
         Console.WriteLine("1. Останні рядки лога");
         Console.WriteLine("2. Очистити лог");
+        Console.WriteLine("3. Експортувати всі звіти");
         Console.WriteLine("0. Назад");
         Console.Write("Оберіть: ");
 
@@ -397,7 +398,20 @@ static void RunFilesMenu(Clinic clinic)
                         Console.WriteLine("Лог очищено.");
                         break;
                     }
+                case "3":
+                    {
+                        string[] paths = clinic.Exporter.ExportAll();
 
+                        Console.WriteLine("Створені звіти:");
+
+                        foreach (string path in paths)
+                        {
+                            Console.WriteLine(Path.GetFullPath(path));
+                        }
+
+                        clinic.Logger.LogInfo("Експортовано всі звіти.");
+                        break;
+                    }
                 default:
                     {
                         Console.WriteLine("Невірний вибір.");
