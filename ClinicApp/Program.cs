@@ -348,6 +348,7 @@ static void RunFilesMenu(Clinic clinic)
         Console.WriteLine("1. Останні рядки лога");
         Console.WriteLine("2. Очистити лог");
         Console.WriteLine("3. Експортувати всі звіти");
+        Console.WriteLine("4. Імпорт пацієнтів з CSV");
         Console.WriteLine("0. Назад");
         Console.Write("Оберіть: ");
 
@@ -410,6 +411,34 @@ static void RunFilesMenu(Clinic clinic)
                         }
 
                         clinic.Logger.LogInfo("Експортовано всі звіти.");
+                        break;
+                    }
+                case "4":
+                    {
+                        Console.Write("Шлях до CSV-файлу: ");
+
+                        string filePath = (Console.ReadLine() ?? "").Trim().Trim('"');
+
+                        if (string.IsNullOrWhiteSpace(filePath))
+                        {
+                            Console.WriteLine("Шлях не може бути порожнім.");
+                            clinic.Logger.LogWarning("Не вказано шлях до CSV-файлу.");
+                            break;
+                        }
+
+                        ImportResult result = CsvImporter.ImportPatients(clinic, filePath);
+
+                        result.Print();
+
+                        clinic.Logger.LogInfo(
+                            $"Імпорт CSV: імпортовано {result.Imported}, " +
+                            $"пропущено {result.Skipped}.");
+
+                        foreach (string error in result.Errors)
+                        {
+                            clinic.Logger.LogWarning($"Імпорт CSV: {error}");
+                        }
+
                         break;
                     }
                 default:
