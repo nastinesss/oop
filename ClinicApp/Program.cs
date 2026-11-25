@@ -8,6 +8,7 @@ using ClinicApp.Managers;
 using ClinicApp.Interfaces;
 using ClinicApp.Comparators;
 using ClinicApp.Utils;
+using ClinicApp.Events;
 
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
@@ -15,6 +16,8 @@ CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 RunGrowableTest();
 
 var clinic = new Clinic("Здоров'я Плюс");
+
+clinic.Appointments.AppointmentBooked += OnAppointmentBookedConsole;
 
 try
 {
@@ -1318,4 +1321,13 @@ static void RunAppointmentsMenu(Clinic clinic)
                 break;
         }
     }
+}
+static void OnAppointmentBookedConsole(
+    object? sender,
+    AppointmentEventArgs e)
+{
+    Console.WriteLine(
+        $"[EVENT] Запис #{e.AppointmentId} створено: " +
+        $"пацієнт #{e.PatientId} → лікар #{e.DoctorId}, " +
+        $"{e.ScheduledAt:dd.MM.yyyy HH:mm}");
 }

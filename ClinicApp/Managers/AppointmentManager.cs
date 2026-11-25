@@ -1,5 +1,6 @@
 ﻿using ClinicApp.Interfaces;
 using ClinicApp.Models;
+using ClinicApp.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +17,7 @@ namespace ClinicApp.Managers
         private readonly DoctorManager _doctors;
 
         public int Count => _count;
-
+        public event EventHandler<AppointmentEventArgs>? AppointmentBooked;
         public Appointment? this[int index]
         {
             get
@@ -97,6 +98,10 @@ namespace ClinicApp.Managers
             _count++;
 
             Console.WriteLine(successMessage);
+            Console.WriteLine($"ID створеного запису: {appointment.Id}");
+
+            AppointmentBooked?.Invoke(this, CreateEventArgs(appointment));
+
             return true;
         }
 
@@ -354,6 +359,26 @@ namespace ClinicApp.Managers
             {
                 DisplayAppointment(list[i]);
             }
+        }
+        private AppointmentEventArgs CreateEventArgs(Appointment appointment)
+        {
+            string notes = appointment.Notes;
+
+            if (appointment is UrgentAppointment urgent)
+            {
+                notes = urgent.UrgencyNote;
+            }
+            else if (appointment is SpecialistAppointment specialist)
+            {
+                notes = specialist.ConsultationTopic;
+            }
+
+            return new AppointmentEventArgs(
+                appointment.Id,
+                appointment.PatientId,
+                appointment.DoctorId,
+                appointment.ScheduledAt,
+                notes);
         }
     }
 }
