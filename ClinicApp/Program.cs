@@ -9,6 +9,8 @@ using ClinicApp.Interfaces;
 using ClinicApp.Comparators;
 using ClinicApp.Utils;
 using ClinicApp.Events;
+using ClinicApp.Extensions;
+using System.Linq;
 
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
@@ -111,6 +113,7 @@ while (appRunning)
     Console.WriteLine("│ 9. Плани лікування — рефлексія, атрибути       │");
     Console.WriteLine("│ 10. Файли — журнал, імпорт, експорт, сесія     │");
     Console.WriteLine("│ 11. Звіти — спеціальності, візити, виручка     │");
+    Console.WriteLine("│ 12. Фільтри — Func, Action, Pipeline           │");
     Console.WriteLine("│ 0. Вийти                                       │");
     Console.WriteLine("└────────────────────────────────────────────────┘");
     Console.Write("Оберіть розділ: ");
@@ -150,6 +153,9 @@ while (appRunning)
             break;
         case "11":
             ReportsMenu(clinic);
+            break;
+        case "12":
+            FunctionalMenu(clinic);
             break;
         case "0":
             {
@@ -1437,6 +1443,154 @@ static void ReportsMenu(Clinic clinic)
             case "0":
             case null:
                 return;
+
+            default:
+                Console.WriteLine("Невірний вибір.");
+                break;
+        }
+    }
+}
+static void FunctionalMenu(Clinic clinic)
+{
+    while (true)
+    {
+        Console.WriteLine("\n── Фільтри ─────────────────────");
+        Console.WriteLine("1. Неоплачені прийоми та загальна сума");
+        Console.WriteLine("2. Майбутні записи дорожчі за N грн");
+        Console.WriteLine("3. Повнолітні пацієнти");
+        Console.WriteLine("4. Лікарі з хоча б одним записом");
+        Console.WriteLine("5. Термінові й майбутні записи");
+        Console.WriteLine("6. Термінові або прострочені записи");
+        Console.WriteLine("7. Вивести всі записи та записати їх у лог");
+        Console.WriteLine("8. Пайплайн: неоплачені майбутні записи");
+        Console.WriteLine("0. Назад");
+        Console.Write("Оберіть: ");
+
+        string? choice = Console.ReadLine();
+
+        if (choice == null || choice == "0")
+        {
+            return;
+        }
+
+        Appointment[] appointments = clinic.Appointments.GetAll();
+
+        switch (choice)
+        {
+            case "1":
+                {
+                    var unpaid = appointments.Unpaid().ToArray();
+
+                    clinic.Appointments.DisplayList(unpaid);
+                    Console.WriteLine($"Загальна сума: {unpaid.TotalCost():F2} грн");
+                    break;
+                }
+
+            case "2":
+                {
+                    Console.Write("Поріг, грн: ");
+                    string amount = (Console.ReadLine() ?? "").Trim().Replace(',', '.');
+
+                    if (!decimal.TryParse(
+                            amount,
+                            NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                            CultureInfo.InvariantCulture,
+                            out decimal minCost) ||
+                        minCost < 0)
+                    {
+                        Console.WriteLine("Введіть невід’ємну суму, наприклад 300 або 300,50.");
+                        break;
+                    }
+
+                    var selected = appointments.Upcoming().CostAbove(minCost).ToArray();
+
+                    clinic.Appointments.DisplayList(selected);
+                    break;
+                }
+
+            case "3":
+                {
+                    var adults = clinic.Patients.GetAll().Adults().ToArray();
+
+                    if (adults.Length == 0)
+                    {
+                        Console.WriteLine("Повнолітніх пацієнтів немає.");
+                    }
+
+                    foreach (Patient patient in adults)
+                    {
+                        Console.WriteLine(patient);
+                    }
+
+                    break;
+                }
+
+            case "4":
+                {
+                    var doctors = clinic.Doctors.GetAll()
+                        .WithAppointments(appointments)
+                        .ToArray();
+
+                    if (doctors.Length == 0)
+                    {
+                        Console.WriteLine("Лікарів із записами немає.");
+                    }
+
+                    foreach (Doctor doctor in doctors)
+                    {
+                        Console.WriteLine(doctor);
+                    }
+
+                    break;
+                }
+
+            case "5":
+                {
+                    var filter = new AppointmentFilter()
+                        .Add(a => a is UrgentAppointment)
+                        .And(a => a.IsUpcoming);
+
+                    clinic.Appointments.DisplayList(filter.Apply(appointments).ToArray());
+                    break;
+                }
+
+            case "6":
+                {
+                    var overdue = appointments.Overdue().ToArray();
+
+                    var filter = new AppointmentFilter()
+                        .Add(a => a is UrgentAppointment)
+                        .Or(a => overdue.Contains(a));
+
+                    clinic.Appointments.DisplayList(filter.Apply(appointments).ToArray());
+                    break;
+                }
+
+            case "7":
+                {
+                    var processor = new AppointmentProcessor()
+                        .Combine(
+                            a => Console.WriteLine(a),
+                            a => clinic.Logger.LogInfo(
+                                $"Переглянуто запис #{a.Id} через меню фільтрів."));
+
+                    processor.Execute(appointments);
+                    break;
+                }
+
+            case "8":
+                {
+                    clinic.Pipeline.Reset();
+
+                    int count = clinic.Pipeline
+                        .Filter(a => !a.IsPaid && !a.IsCancelled)
+                        .Filter(a => a.IsUpcoming)
+                        .Then(a => Console.WriteLine(a))
+                        .Execute(appointments);
+
+                    Console.WriteLine($"Оброблено: {count} записів.");
+                    break;
+                }
 
             default:
                 Console.WriteLine("Невірний вибір.");
