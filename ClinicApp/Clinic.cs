@@ -18,7 +18,7 @@ namespace ClinicApp
 
         public BillingManager Billing { get; }
         public AnalyticsManager Analytics { get; }
-
+        public ReportManager Reports { get; }
         public TreatmentPlanManager TreatmentPlans { get; }
         public ClinicLogger Logger { get; }
         public ClinicExporter Exporter { get; }
@@ -37,6 +37,7 @@ namespace ClinicApp
 
             Billing = new BillingManager(Appointments);
             Analytics = new AnalyticsManager(Appointments, Doctors, Patients);
+            Reports = new ReportManager(Appointments, Doctors, Patients);
             TreatmentPlans = new TreatmentPlanManager();
             Logger = new ClinicLogger();
             Exporter = new ClinicExporter(this);
