@@ -149,6 +149,24 @@ while (appRunning)
             break;
         case "0":
             {
+                clinic.Tracker.PrintSummary();
+
+                try
+                {
+                    clinic.Tracker.SaveSummary();
+                    Console.WriteLine("Підсумок записано у session_summary.txt.");
+                }
+                catch (IOException ex)
+                {
+                    Console.WriteLine(
+                        $"Не вдалося зберегти підсумок: {ex.Message}");
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    Console.WriteLine(
+                        $"Немає доступу до файлу підсумку: {ex.Message}");
+                }
+
                 Console.Write("Зберегти сесію? (y/n): ");
 
                 string answer = (Console.ReadLine() ?? "").Trim();

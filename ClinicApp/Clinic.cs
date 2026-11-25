@@ -24,6 +24,7 @@ namespace ClinicApp
         public ClinicExporter Exporter { get; }
         public SessionManager Session { get; }
         public PatientPassportWriter Passport { get; }
+        public SessionEventTracker Tracker { get; }
         public WaitingQueue<Patient> WaitingRoom { get; } = new WaitingQueue<Patient>();
 
         public Clinic(string name)
@@ -41,6 +42,7 @@ namespace ClinicApp
             Exporter = new ClinicExporter(this);
             Session = new SessionManager();
             Passport = new PatientPassportWriter(this);
+            Tracker = new SessionEventTracker(this);
             SubscribeEvents();
         }
 
@@ -98,6 +100,7 @@ namespace ClinicApp
         }
         private void SubscribeEvents()
         {
+            // Логер.
             Patients.PatientAdded += Logger.OnPatientAdded;
 
             Appointments.AppointmentBooked += Logger.OnAppointmentBooked;
@@ -110,12 +113,26 @@ namespace ClinicApp
             Billing.PaymentReceived += Logger.OnPaymentReceived;
             TreatmentPlans.PlanCompleted += Logger.OnPlanCompleted;
 
+            // Паспорт пацієнта.
             Patients.PatientAdded += Passport.OnPatientAdded;
 
             Appointments.AppointmentCompleted +=
                 Passport.OnAppointmentCompleted;
 
             TreatmentPlans.PlanCompleted += Passport.OnPlanCompleted;
+
+            // Лічильники сесії.
+            Patients.PatientAdded += Tracker.OnPatientAdded;
+
+            Appointments.AppointmentBooked += Tracker.OnAppointmentBooked;
+            Appointments.AppointmentCancelled += Tracker.OnAppointmentCancelled;
+            Appointments.AppointmentCompleted += Tracker.OnAppointmentCompleted;
+
+            Appointments.UrgentAppointmentBooked +=
+                Tracker.OnUrgentAppointmentBooked;
+
+            Billing.PaymentReceived += Tracker.OnPaymentReceived;
+            TreatmentPlans.PlanCompleted += Tracker.OnPlanCompleted;
         }
     }
 }
