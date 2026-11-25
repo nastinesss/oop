@@ -352,7 +352,7 @@ static void RunTreatmentPlansMenu(Clinic clinic)
                     }
                     else if (choice == "5")
                     {
-                        changed = plan.Complete();
+                        changed = clinic.TreatmentPlans.Complete(plan.Id);
                         successMessage = "План завершено.";
                     }
                     else
@@ -687,7 +687,6 @@ static void RunBillingMenu(Clinic clinic)
 
                 if (success)
                 {
-                    clinic.Logger.LogInfo($"Запис #{aptId} оплачено.");
                     Console.WriteLine($"Запис [{aptId}] оплачено.");
                 }
                 else
@@ -1000,9 +999,6 @@ static void RunPatientsMenu(Clinic clinic)
 
                     clinic.Patients.Add(patient);
 
-                    clinic.Logger.LogInfo(
-                        $"Додано пацієнта #{patient.Id}: {patient.FullName}");
-
                     Console.WriteLine("Пацієнта успішно додано!");
                 }
                 catch (Exception ex)
@@ -1231,9 +1227,6 @@ static void RunAppointmentsMenu(Clinic clinic)
                         int duration = int.TryParse(durInput, out int dur) ? dur : 30;
 
                         clinic.Appointments.BookUrgent(patientId, doctorId, dt, urgencyNote, duration);
-                        clinic.Logger.LogInfo(
-    $"Створено терміновий запис: пацієнт #{patientId} → " +
-    $"лікар #{doctorId}, {dt:dd.MM.yyyy HH:mm}");
                     }
                     else if (typeChoice == "3")
                     {
@@ -1244,9 +1237,6 @@ static void RunAppointmentsMenu(Clinic clinic)
                         int duration = int.TryParse(durInput, out int dur) ? dur : 45;
 
                         clinic.Appointments.BookSpecialist(patientId, doctorId, dt, topic, duration);
-                        clinic.Logger.LogInfo(
-    $"Створено запис до спеціаліста: пацієнт #{patientId} → " +
-    $"лікар #{doctorId}, {dt:dd.MM.yyyy HH:mm}");
                     }
                     else
                     {
@@ -1255,9 +1245,6 @@ static void RunAppointmentsMenu(Clinic clinic)
                         int duration = int.TryParse(durInput, out int dur) ? dur : 30;
 
                         clinic.Appointments.Book(patientId, doctorId, dt, duration);
-                        clinic.Logger.LogInfo(
-    $"Створено запис: пацієнт #{patientId} → " +
-    $"лікар #{doctorId}, {dt:dd.MM.yyyy HH:mm}");
                     }
                 }
                 catch (Exception ex)
@@ -1272,15 +1259,9 @@ static void RunAppointmentsMenu(Clinic clinic)
                     Console.Write("Причина скасування: ");
                     string reason = Console.ReadLine() ?? "";
 
-                    if (clinic.Appointments.Cancel(cId, reason))
+                    if (!clinic.Appointments.Cancel(cId, reason))
                     {
-                        clinic.Logger.LogInfo(
-                            $"Запис #{cId} скасовано. Причина: {reason}");
-                    }
-                    else
-                    {
-                        clinic.Logger.LogWarning(
-                            $"Не вдалося скасувати запис #{cId}.");
+                        clinic.Logger.LogWarning($"Не вдалося скасувати запис #{cId}.");
                     }
                 }
                 break;
@@ -1288,14 +1269,9 @@ static void RunAppointmentsMenu(Clinic clinic)
                 Console.Write("Введіть ID запису для завершення: ");
                 if (int.TryParse(Console.ReadLine(), out int compId))
                 {
-                    if (clinic.Appointments.Complete(compId))
+                    if (!clinic.Appointments.Complete(compId))
                     {
-                        clinic.Logger.LogInfo($"Запис #{compId} завершено.");
-                    }
-                    else
-                    {
-                        clinic.Logger.LogWarning(
-                            $"Не вдалося завершити запис #{compId}.");
+                        clinic.Logger.LogWarning($"Не вдалося завершити запис #{compId}.");
                     }
                 }
                 break;

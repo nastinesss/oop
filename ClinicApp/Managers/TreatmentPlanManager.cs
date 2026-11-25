@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ClinicApp.Enums;
 using ClinicApp.Models;
 using ClinicApp.Utils;
+using ClinicApp.Events;
 
 namespace ClinicApp.Managers
 {
@@ -10,7 +11,7 @@ namespace ClinicApp.Managers
     {
         private readonly List<TreatmentPlan> _plans =
             new List<TreatmentPlan>();
-
+        public event EventHandler<TreatmentPlanEventArgs>? PlanCompleted;
         public bool Add(TreatmentPlan plan)
         {
             ValidationResult result = ModelValidator.Validate(plan);
@@ -77,6 +78,24 @@ namespace ClinicApp.Managers
         public TreatmentPlan[] GetAll()
         {
             return _plans.ToArray();
+        }
+        public bool Complete(int planId)
+        {
+            TreatmentPlan? plan = GetById(planId);
+
+            if (plan == null || !plan.Complete())
+            {
+                return false;
+            }
+
+            PlanCompleted?.Invoke(
+                this,
+                new TreatmentPlanEventArgs(
+                    plan.Id,
+                    plan.PatientId,
+                    plan.Diagnosis));
+
+            return true;
         }
     }
 }

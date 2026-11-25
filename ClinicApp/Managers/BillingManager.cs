@@ -1,4 +1,5 @@
 ﻿using ClinicApp.Interfaces;
+using ClinicApp.Events;
 using ClinicApp.Managers;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace ClinicApp.Managers
     public class BillingManager
     {
         private readonly AppointmentManager _appointmentsManager;
-
+        public event EventHandler<PaymentEventArgs>? PaymentReceived;
         public BillingManager(AppointmentManager appointmentsManager)
         {
             _appointmentsManager = appointmentsManager;
@@ -92,7 +93,14 @@ namespace ClinicApp.Managers
                         return false;
                     }
 
+                    decimal amount = apt.GetCost();
+
                     apt.MarkPaid();
+
+                    PaymentReceived?.Invoke(
+                        this,
+                        new PaymentEventArgs(apt.Id, amount));
+
                     return true;
                 }
             }

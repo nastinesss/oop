@@ -18,6 +18,9 @@ namespace ClinicApp.Managers
 
         public int Count => _count;
         public event EventHandler<AppointmentEventArgs>? AppointmentBooked;
+        public event EventHandler<AppointmentEventArgs>? AppointmentCancelled;
+        public event EventHandler<AppointmentEventArgs>? AppointmentCompleted;
+        public event EventHandler<AppointmentEventArgs>? UrgentAppointmentBooked;
         public Appointment? this[int index]
         {
             get
@@ -58,16 +61,27 @@ namespace ClinicApp.Managers
             return result;
         }
 
-        public static int CancelAll(ICancellable[] items, string reason = "")
+        public int CancelAll(ICancellable[] items, string reason = "")
         {
             int cancelledCount = 0;
-            foreach (var item in items)
+
+            foreach (ICancellable item in items)
             {
-                if (item != null && item.Cancel(reason))
+                if (item == null || !item.Cancel(reason))
                 {
-                    cancelledCount++;
+                    continue;
+                }
+
+                cancelledCount++;
+
+                if (item is Appointment appointment)
+                {
+                    AppointmentCancelled?.Invoke(
+                        this,
+                        CreateEventArgs(appointment));
                 }
             }
+
             return cancelledCount;
         }
 
@@ -111,10 +125,32 @@ namespace ClinicApp.Managers
             return AddAppointmentInternal(appointment, $"Успішно створено звичайний запис №{appointment.Id}.");
         }
 
-        public bool BookUrgent(int patientId, int doctorId, DateTime scheduledAt, string urgencyNote = "", int durationMinutes = 30)
+        public bool BookUrgent(
+    int patientId,
+    int doctorId,
+    DateTime scheduledAt,
+    string urgencyNote = "",
+    int durationMinutes = 30)
         {
-            var appointment = new UrgentAppointment(patientId, doctorId, scheduledAt, urgencyNote, durationMinutes);
-            return AddAppointmentInternal(appointment, $"Успішно створено терміновий запис №{appointment.Id}.");
+            var appointment = new UrgentAppointment(
+                patientId,
+                doctorId,
+                scheduledAt,
+                urgencyNote,
+                durationMinutes);
+
+            bool success = AddAppointmentInternal(
+                appointment,
+                "Успішно створено терміновий запис.");
+
+            if (success)
+            {
+                UrgentAppointmentBooked?.Invoke(
+                    this,
+                    CreateEventArgs(appointment));
+            }
+
+            return success;
         }
 
         public bool BookSpecialist(int patientId, int doctorId, DateTime scheduledAt, string topic = "", int durationMinutes = 45)
@@ -136,6 +172,7 @@ namespace ClinicApp.Managers
             if (result)
             {
                 Console.WriteLine($"Запис №{id} успішно скасовано.");
+                AppointmentCancelled?.Invoke(this, CreateEventArgs(apt));
             }
             else
             {
@@ -157,6 +194,7 @@ namespace ClinicApp.Managers
             if (result)
             {
                 Console.WriteLine($"Запис №{id} успішно завершено.");
+                AppointmentCompleted?.Invoke(this, CreateEventArgs(apt));
             }
             else
             {
