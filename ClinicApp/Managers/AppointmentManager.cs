@@ -1,5 +1,6 @@
 ﻿using ClinicApp.Interfaces;
 using ClinicApp.Models;
+using ClinicApp.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +17,10 @@ namespace ClinicApp.Managers
         private readonly DoctorManager _doctors;
 
         public int Count => _count;
-
+        public event EventHandler<AppointmentEventArgs>? AppointmentBooked;
+        public event EventHandler<AppointmentEventArgs>? AppointmentCancelled;
+        public event EventHandler<AppointmentEventArgs>? AppointmentCompleted;
+        public event EventHandler<AppointmentEventArgs>? UrgentAppointmentBooked;
         public Appointment? this[int index]
         {
             get
@@ -57,16 +61,27 @@ namespace ClinicApp.Managers
             return result;
         }
 
-        public static int CancelAll(ICancellable[] items, string reason = "")
+        public int CancelAll(ICancellable[] items, string reason = "")
         {
             int cancelledCount = 0;
-            foreach (var item in items)
+
+            foreach (ICancellable item in items)
             {
-                if (item != null && item.Cancel(reason))
+                if (item == null || !item.Cancel(reason))
                 {
-                    cancelledCount++;
+                    continue;
+                }
+
+                cancelledCount++;
+
+                if (item is Appointment appointment)
+                {
+                    AppointmentCancelled?.Invoke(
+                        this,
+                        CreateEventArgs(appointment));
                 }
             }
+
             return cancelledCount;
         }
 
@@ -97,6 +112,10 @@ namespace ClinicApp.Managers
             _count++;
 
             Console.WriteLine(successMessage);
+            Console.WriteLine($"ID створеного запису: {appointment.Id}");
+
+            AppointmentBooked?.Invoke(this, CreateEventArgs(appointment));
+
             return true;
         }
 
@@ -106,10 +125,32 @@ namespace ClinicApp.Managers
             return AddAppointmentInternal(appointment, $"Успішно створено звичайний запис №{appointment.Id}.");
         }
 
-        public bool BookUrgent(int patientId, int doctorId, DateTime scheduledAt, string urgencyNote = "", int durationMinutes = 30)
+        public bool BookUrgent(
+    int patientId,
+    int doctorId,
+    DateTime scheduledAt,
+    string urgencyNote = "",
+    int durationMinutes = 30)
         {
-            var appointment = new UrgentAppointment(patientId, doctorId, scheduledAt, urgencyNote, durationMinutes);
-            return AddAppointmentInternal(appointment, $"Успішно створено терміновий запис №{appointment.Id}.");
+            var appointment = new UrgentAppointment(
+                patientId,
+                doctorId,
+                scheduledAt,
+                urgencyNote,
+                durationMinutes);
+
+            bool success = AddAppointmentInternal(
+                appointment,
+                "Успішно створено терміновий запис.");
+
+            if (success)
+            {
+                UrgentAppointmentBooked?.Invoke(
+                    this,
+                    CreateEventArgs(appointment));
+            }
+
+            return success;
         }
 
         public bool BookSpecialist(int patientId, int doctorId, DateTime scheduledAt, string topic = "", int durationMinutes = 45)
@@ -131,6 +172,7 @@ namespace ClinicApp.Managers
             if (result)
             {
                 Console.WriteLine($"Запис №{id} успішно скасовано.");
+                AppointmentCancelled?.Invoke(this, CreateEventArgs(apt));
             }
             else
             {
@@ -152,6 +194,7 @@ namespace ClinicApp.Managers
             if (result)
             {
                 Console.WriteLine($"Запис №{id} успішно завершено.");
+                AppointmentCompleted?.Invoke(this, CreateEventArgs(apt));
             }
             else
             {
@@ -354,6 +397,26 @@ namespace ClinicApp.Managers
             {
                 DisplayAppointment(list[i]);
             }
+        }
+        private AppointmentEventArgs CreateEventArgs(Appointment appointment)
+        {
+            string notes = appointment.Notes;
+
+            if (appointment is UrgentAppointment urgent)
+            {
+                notes = urgent.UrgencyNote;
+            }
+            else if (appointment is SpecialistAppointment specialist)
+            {
+                notes = specialist.ConsultationTopic;
+            }
+
+            return new AppointmentEventArgs(
+                appointment.Id,
+                appointment.PatientId,
+                appointment.DoctorId,
+                appointment.ScheduledAt,
+                notes);
         }
     }
 }

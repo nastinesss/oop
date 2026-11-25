@@ -1,4 +1,6 @@
 ﻿using ClinicApp.Managers;
+using ClinicApp.Models;
+using ClinicApp.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,6 +17,15 @@ namespace ClinicApp
         public MedicalRecordManager MedicalRecords { get; }
 
         public BillingManager Billing { get; }
+        public AnalyticsManager Analytics { get; }
+
+        public TreatmentPlanManager TreatmentPlans { get; }
+        public ClinicLogger Logger { get; }
+        public ClinicExporter Exporter { get; }
+        public SessionManager Session { get; }
+        public PatientPassportWriter Passport { get; }
+        public SessionEventTracker Tracker { get; }
+        public WaitingQueue<Patient> WaitingRoom { get; } = new WaitingQueue<Patient>();
 
         public Clinic(string name)
         {
@@ -25,6 +36,14 @@ namespace ClinicApp
             MedicalRecords = new MedicalRecordManager();
 
             Billing = new BillingManager(Appointments);
+            Analytics = new AnalyticsManager(Appointments, Doctors, Patients);
+            TreatmentPlans = new TreatmentPlanManager();
+            Logger = new ClinicLogger();
+            Exporter = new ClinicExporter(this);
+            Session = new SessionManager();
+            Passport = new PatientPassportWriter(this);
+            Tracker = new SessionEventTracker(this);
+            SubscribeEvents();
         }
 
         public void DisplaySchedule(DateTime date)
@@ -78,6 +97,42 @@ namespace ClinicApp
             }
 
             Console.WriteLine("╚══════════════════════════════════════════════════════╝");
+        }
+        private void SubscribeEvents()
+        {
+            // Логер.
+            Patients.PatientAdded += Logger.OnPatientAdded;
+
+            Appointments.AppointmentBooked += Logger.OnAppointmentBooked;
+            Appointments.AppointmentCancelled += Logger.OnAppointmentCancelled;
+            Appointments.AppointmentCompleted += Logger.OnAppointmentCompleted;
+
+            Appointments.UrgentAppointmentBooked +=
+                Logger.OnUrgentAppointmentBooked;
+
+            Billing.PaymentReceived += Logger.OnPaymentReceived;
+            TreatmentPlans.PlanCompleted += Logger.OnPlanCompleted;
+
+            // Паспорт пацієнта.
+            Patients.PatientAdded += Passport.OnPatientAdded;
+
+            Appointments.AppointmentCompleted +=
+                Passport.OnAppointmentCompleted;
+
+            TreatmentPlans.PlanCompleted += Passport.OnPlanCompleted;
+
+            // Лічильники сесії.
+            Patients.PatientAdded += Tracker.OnPatientAdded;
+
+            Appointments.AppointmentBooked += Tracker.OnAppointmentBooked;
+            Appointments.AppointmentCancelled += Tracker.OnAppointmentCancelled;
+            Appointments.AppointmentCompleted += Tracker.OnAppointmentCompleted;
+
+            Appointments.UrgentAppointmentBooked +=
+                Tracker.OnUrgentAppointmentBooked;
+
+            Billing.PaymentReceived += Tracker.OnPaymentReceived;
+            TreatmentPlans.PlanCompleted += Tracker.OnPlanCompleted;
         }
     }
 }
